@@ -67,14 +67,14 @@ On macOS, the Git global `user.name` can become NFD-decomposed, causing commit l
 
 ```bash
 # Step 1: Diagnose current state (read-only, no changes made)
-npx @nkcroft/unorm --test-git-user
+npx @nkcroft/unorm@latest --test-git-user
 
 # Step 2: Normalize to NFC if NFD is detected
-npx @nkcroft/unorm --fix-git-user
+npx @nkcroft/unorm@latest --fix-git-user
 ```
 
 > [!IMPORTANT]
-> **If you use a custom `unorm` command globally**: If you have your own `unorm` script or binary already in your `PATH`, `npx @nkcroft/unorm` may execute that instead of this npm package, producing unexpected output.
+> **If you use a custom `unorm` command globally**: If you have your own `unorm` script or binary already in your `PATH`, `npx @nkcroft/unorm@latest` may execute that instead of this npm package, producing unexpected output.
 >
 > Verify which binary is being resolved:
 > ```bash
@@ -154,6 +154,26 @@ mv /path/to/your/unorm /path/to/your/unorm-legacy
 After resolving the conflict, `npx @nkcroft/unorm` will run the npm package correctly.
 
 ---
+
+### `npx @nkcroft/unorm --version` says `unorm: command not found`
+
+On recent npm versions, `npx @nkcroft/unorm <args>` can be interpreted as "run the `unorm` command" instead of "install and run the `@nkcroft/unorm` package", which results in:
+
+```text
+sh: unorm: command not found
+```
+
+**Fix:** Specify a version (recommended):
+
+```bash
+npx @nkcroft/unorm@latest --version
+```
+
+If you need an alternative form, you can also run via `npm exec` explicitly:
+
+```bash
+npm exec --yes --package @nkcroft/unorm@latest -- unorm --version
+```
 
 ### `--version` reports an old version after `npm cache clean`
 
