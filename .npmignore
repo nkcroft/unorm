@@ -1,0 +1,25 @@
+# Source files — use dist/ instead
+src/
+
+# Tests
+tests/
+
+# Dev config
+tsconfig.json
+vite.config.ts
+eslint.config.ts
+.editorconfig
+
+# Editor & IDE
+.cursor/
+.vscode/
+
+# CI/CD & GitHub
+.github/
+
+# Docs
+docs/
+
+# Misc
+*.tgz
+.DS_Store

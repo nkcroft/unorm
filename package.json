@@ -11,8 +11,7 @@
   },
   "files": [
     "dist/",
-    "bin/",
-    "src/"
+    "bin/"
   ],
   "scripts": {
     "build": "vite build",
