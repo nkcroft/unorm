@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write # NPM Provenance (OIDC) 인증을 위한 필수 권한
 
 jobs:
   release-please:
@@ -26,7 +27,7 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22' # OIDC Trusted Publishing을 위해 Node 22+ 권장
           registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
@@ -37,8 +38,6 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         run: npm run build
         
-      - name: Publish to npm
+      - name: Publish to npm (with Provenance)
         if: ${{ steps.release.outputs.release_created }}
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance

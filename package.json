@@ -24,6 +24,10 @@
     "mac",
     "korean"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nkcroft/unorm.git"
+  },
   "author": "",
   "license": "MIT",
   "devDependencies": {
