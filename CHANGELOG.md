@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/nkcroft/unorm/compare/v1.0.2...v1.0.3) (2026-04-10)
+
+
+### Bug Fixes
+
+* avoid no-explicit-any in commander exit override ([#34](https://github.com/nkcroft/unorm/issues/34)) ([db59118](https://github.com/nkcroft/unorm/commit/db59118d7220774bcab3a84478937d1948b3e387))
+
 ## [1.0.2](https://github.com/nkcroft/unorm/compare/v1.0.1...v1.0.2) (2026-04-10)
 
 
