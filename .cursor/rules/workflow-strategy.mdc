@@ -18,3 +18,13 @@ alwaysApply: true
    - 불필요한 빌드 결과물(`dist/`), 패키지 모듈(`node_modules/`), 환경 설정 파일(`.env`), OS 임시 파일(`.DS_Store`) 등이 커밋되지 않도록 방지합니다.
 4. **작업이 완료되면 `main` 브랜치로 PR(Pull Request)을 생성하여 병합하는 것을 원칙으로 합니다.**
 5. **PR이 `main` 브랜치에 성공적으로 병합된 후에는 불필요한 혼란을 방지하기 위해 해당 작업 브랜치를 로컬 및 원격에서 즉시 삭제(제거)합니다.**
+
+## Issue & PR 처리 규칙
+
+6. **버그 또는 개선사항 발견 시, 코드 수정 전에 반드시 GitHub 이슈를 먼저 등록합니다.**
+   - `gh issue create` 명령어를 사용합니다.
+   - 이슈 제목과 본문은 **반드시 영문**으로 작성합니다.
+   - 이슈 본문에는 Problem / Root Cause / Expected Behavior / Fix 체크리스트를 포함합니다.
+   - 브랜치명에 이슈 번호를 포함합니다. (예: `fix/1-missing-dist-in-publish`)
+7. **PR(Pull Request) 제목과 본문도 반드시 영문으로 작성합니다.**
+   - PR 본문에는 해결한 이슈를 `Closes #N` 형식으로 명시하여 병합 시 이슈가 자동으로 닫히도록 합니다.

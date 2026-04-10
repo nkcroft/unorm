@@ -9,8 +9,14 @@
   "bin": {
     "unorm": "./bin/unorm.js"
   },
+  "files": [
+    "dist/",
+    "bin/",
+    "src/"
+  ],
   "scripts": {
     "build": "vite build",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
