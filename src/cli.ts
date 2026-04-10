@@ -1,4 +1,4 @@
-import { Command } from 'commander'
+import { Command, CommanderError } from 'commander'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { execSync } from 'node:child_process'
 import process from 'node:process'
@@ -146,7 +146,8 @@ export function runCli(args: string[] = process.argv) {
     program.parse(args)
   } catch (error) {
     // commander already printed a useful error + help (showHelpAfterError)
-    process.exit(typeof (error as any)?.exitCode === 'number' ? (error as any).exitCode : 1)
+    if (error instanceof CommanderError) process.exit(error.exitCode)
+    process.exit(1)
   }
 
   const options = program.opts()
