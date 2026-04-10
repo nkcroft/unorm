@@ -1,8 +1,25 @@
 # `@nkcroft/unorm`
 
-Fast and lightweight Node.js based Unicode Normalization CLI tool and library.
+[![npm](https://img.shields.io/npm/v/@nkcroft/unorm?label=npm&color=0b7285)](https://www.npmjs.com/package/@nkcroft/unorm)
+[![CI](https://github.com/nkcroft/unorm/actions/workflows/ci.yml/badge.svg)](https://github.com/nkcroft/unorm/actions/workflows/ci.yml)
+[![downloads](https://img.shields.io/npm/dm/@nkcroft/unorm?label=downloads&color=1864ab)](https://www.npmjs.com/package/@nkcroft/unorm)
+![license](https://img.shields.io/npm/l/@nkcroft/unorm?label=license&color=2f9e44)
+![node](https://img.shields.io/node/v/@nkcroft/unorm?label=node&color=5c940d)
 
-Designed to solve Korean Hangul jamo decomposition (NFD) issues that occur when exchanging filenames and text data between macOS and Windows/Linux environments.
+Fast and lightweight Unicode Normalization CLI tool and library for Node.js.
+
+Primarily designed to help diagnose and fix Korean Hangul jamo decomposition (NFD) issues that can occur when exchanging filenames or text between macOS and Windows/Linux.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+- [CLI Usage](#cli-usage)
+- [Library Usage](#library-usage)
+- [Development & Contribution](#development--contribution)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Features
 
@@ -23,6 +40,21 @@ npm install -g @nkcroft/unorm
 
 ```bash
 npm install @nkcroft/unorm
+```
+
+## Quickstart
+
+Normalize a file via pipe (default form: `NFC`):
+
+```bash
+cat mac_nfd_text.txt | unorm > win_nfc_text.txt
+```
+
+Diagnose and fix Git `user.name` issues on macOS (recommended):
+
+```bash
+npx @nkcroft/unorm@latest --test-git-user
+npx @nkcroft/unorm@latest --fix-git-user
 ```
 
 ## CLI Usage
@@ -67,11 +99,24 @@ On macOS, the Git global `user.name` can become NFD-decomposed, causing commit l
 
 ```bash
 # Step 1: Diagnose current state (read-only, no changes made)
-npx @nkcroft/unorm --test-git-user
+npx @nkcroft/unorm@latest --test-git-user
 
 # Step 2: Normalize to NFC if NFD is detected
-npx @nkcroft/unorm --fix-git-user
+npx @nkcroft/unorm@latest --fix-git-user
 ```
+
+> [!IMPORTANT]
+> **If you use a custom `unorm` command globally**: If you have your own `unorm` script or binary already in your `PATH`, `npx @nkcroft/unorm@latest` may execute that instead of this npm package, producing unexpected output.
+>
+> Verify which binary is being resolved:
+> ```bash
+> which unorm                            # check if a local binary takes precedence
+> npx @nkcroft/unorm@latest --version   # should print the package version number
+> ```
+> If the version does not match, rename the conflicting file to avoid the conflict:
+> ```bash
+> mv ~/.bin/unorm ~/.bin/unorm-legacy   # example — adjust path to your actual location
+> ```
 
 #### After global installation
 
@@ -93,7 +138,7 @@ unorm --fix-git-user
 import { normalizeString } from '@nkcroft/unorm'
 
 // Convert NFD (decomposed) string to NFC
-const nfdString = '한글'
+const nfdString = '한글'.normalize('NFD')
 const nfcString = normalizeString(nfdString, 'NFC')
 
 console.log(nfcString) // '한글'
@@ -120,6 +165,55 @@ inputStream.pipe(normalizeStream).pipe(outputStream)
 - **Branch Strategy**: All work is done in feature branches (`feat/`, `fix/`, `docs/`, etc.) and merged into `main` via PR. Releases are triggered by merging `main` into the `release` branch via an automated pipeline.
 - **Coding Convention**: Strictly follows the **StandardJS** philosophy (no semicolons, single quotes).
 - **Commit Convention**: All commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+## Troubleshooting
+
+### `npx @nkcroft/unorm` runs a wrong command
+
+If `npx @nkcroft/unorm` produces unexpected output (e.g. `* Input(N): ...` instead of the formatted diagnostic), a `unorm` binary already in your `PATH` is shadowing the npm package. This can happen if you have previously created your own `unorm` script or installed another tool with the same name.
+
+**Diagnose:**
+```bash
+which unorm                           # reveals the file taking precedence
+npx @nkcroft/unorm@latest --version  # should print the package version
+```
+
+**Fix:** Rename or move the conflicting binary so this package takes precedence:
+```bash
+mv /path/to/your/unorm /path/to/your/unorm-legacy
+```
+
+After resolving the conflict, `npx @nkcroft/unorm` will run the npm package correctly.
+
+---
+
+### `npx @nkcroft/unorm --version` says `unorm: command not found`
+
+On recent npm versions, `npx @nkcroft/unorm <args>` can be interpreted as "run the `unorm` command" instead of "install and run the `@nkcroft/unorm` package", which results in:
+
+```text
+sh: unorm: command not found
+```
+
+**Fix:** Specify a version (recommended):
+
+```bash
+npx @nkcroft/unorm@latest --version
+```
+
+If you need an alternative form, you can also run via `npm exec` explicitly:
+
+```bash
+npm exec --yes --package @nkcroft/unorm@latest -- unorm --version
+```
+
+### `--version` reports an old version after `npm cache clean`
+
+`npm cache clean` clears the registry cache but `npx` maintains its own package cache under `~/.npm/_npx/`. If the version still appears stale, specify the version explicitly:
+
+```bash
+npx @nkcroft/unorm@latest --version
+```
 
 ## License
 
