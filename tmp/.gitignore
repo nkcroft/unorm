@@ -1,0 +1,3 @@
+# Keep folder for local pipe/output samples; ignore generated files
+*
+!.gitignore

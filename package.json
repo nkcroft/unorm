@@ -19,7 +19,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "fixtures": "node scripts/generate-test-fixtures.mjs",
+    "sample:pipe": "npm run build --silent && sh -c 'mkdir -p tmp && cat tests/mac_nfd_data.txt | node bin/unorm.js -f NFC > tmp/clean_nfc_data.txt' && echo Wrote tmp/clean_nfc_data.txt"
   },
   "keywords": [
     "unicode",
