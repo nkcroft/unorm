@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - release
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to publish (e.g. v1.0.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -55,3 +61,26 @@ jobs:
           git checkout main
           git merge origin/release --no-edit
           git push origin main
+
+  publish:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Publish to npm (with Provenance)
+        run: npm publish --access public --provenance
