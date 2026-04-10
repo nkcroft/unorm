@@ -74,17 +74,17 @@ npx @nkcroft/unorm --fix-git-user
 ```
 
 > [!IMPORTANT]
-> **PATH conflict**: If you have an existing `unorm` script or binary in your `PATH` (e.g. a custom shell script), `npx @nkcroft/unorm` may execute that file instead of the npm package, producing unexpected output.
+> **If you use a custom `unorm` command globally**: If you have your own `unorm` script or binary already in your `PATH`, `npx @nkcroft/unorm` may execute that instead of this npm package, producing unexpected output.
 >
-> To confirm you are running the correct version:
+> Verify which binary is being resolved:
 > ```bash
-> npx @nkcroft/unorm@latest --version   # should print the latest version number
+> which unorm                            # check if a local binary takes precedence
+> npx @nkcroft/unorm@latest --version   # should print the package version number
 > ```
-> If the output does not match, check for a conflicting `unorm` in your PATH:
+> If the version does not match, rename the conflicting file to avoid the conflict:
 > ```bash
-> which unorm
+> mv ~/.bin/unorm ~/.bin/unorm-legacy   # example — adjust path to your actual location
 > ```
-> Rename or remove the conflicting file (e.g. `mv ~/.bin/unorm ~/.bin/unorm-legacy`), then re-run.
 
 #### After global installation
 
@@ -138,21 +138,20 @@ inputStream.pipe(normalizeStream).pipe(outputStream)
 
 ### `npx @nkcroft/unorm` runs a wrong command
 
-If `npx @nkcroft/unorm` produces unexpected output (e.g. `* Input(N): ...` instead of the formatted diagnostic), a local binary named `unorm` in your `PATH` is shadowing the npm package.
+If `npx @nkcroft/unorm` produces unexpected output (e.g. `* Input(N): ...` instead of the formatted diagnostic), a `unorm` binary already in your `PATH` is shadowing the npm package. This can happen if you have previously created your own `unorm` script or installed another tool with the same name.
 
 **Diagnose:**
 ```bash
-which unorm          # reveals the conflicting file path
-npx @nkcroft/unorm@latest --version   # should print the package version
+which unorm                           # reveals the file taking precedence
+npx @nkcroft/unorm@latest --version  # should print the package version
 ```
 
-**Fix:**
+**Fix:** Rename or move the conflicting binary so this package takes precedence:
 ```bash
-# Rename the conflicting script so npm package takes precedence
-mv ~/.bin/unorm ~/.bin/unorm-legacy
+mv /path/to/your/unorm /path/to/your/unorm-legacy
 ```
 
-After renaming, `npx @nkcroft/unorm` will resolve to the npm package correctly.
+After resolving the conflict, `npx @nkcroft/unorm` will run the npm package correctly.
 
 ---
 
