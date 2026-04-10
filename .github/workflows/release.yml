@@ -47,6 +47,14 @@ jobs:
           release-type: node
           target-branch: release
 
+      - name: Auto-approve release PR
+        if: ${{ steps.release.outputs.pr && steps.release.outputs.pr != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.release.outputs.pr }}
+        run: |
+          gh pr review "${PR_NUMBER}" --approve --body "Auto-approved by workflow."
+
       - name: Setup Node.js for publish
         if: ${{ steps.release.outputs.release_created }}
         uses: actions/setup-node@v6
