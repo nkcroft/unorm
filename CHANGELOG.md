@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.2](https://github.com/nkcroft/unorm/compare/v1.0.1...v1.0.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* add explicit id-token:write permission to publish job ([#28](https://github.com/nkcroft/unorm/issues/28)) ([968df49](https://github.com/nkcroft/unorm/commit/968df495086a8de7dcda25f70fd25451ba7f78ee))
+* restore registry-url in setup-node for npm OIDC auth ([#27](https://github.com/nkcroft/unorm/issues/27)) ([080189e](https://github.com/nkcroft/unorm/commit/080189edf7316e039015da5f10e3bfe2cb8a9357))
+* use Node 24 + remove --provenance per npm Trusted Publishers docs ([#29](https://github.com/nkcroft/unorm/issues/29)) ([941d3e1](https://github.com/nkcroft/unorm/commit/941d3e14ebf3d5d9d434bfca2e958b97d79badee))
+
+## [1.0.1](https://github.com/nkcroft/unorm/compare/v1.0.0...v1.0.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* inject package version at build time via vite define ([#24](https://github.com/nkcroft/unorm/issues/24)) ([75e8094](https://github.com/nkcroft/unorm/commit/75e8094493315173391dd3bdb8f4d8029e6fc082)), closes [#23](https://github.com/nkcroft/unorm/issues/23)
+* pass NPM_TOKEN as NODE_AUTH_TOKEN in publish step ([#19](https://github.com/nkcroft/unorm/issues/19)) ([4515676](https://github.com/nkcroft/unorm/commit/4515676de3f2c3cd8f429fc64ef47c9c8fdde367)), closes [#18](https://github.com/nkcroft/unorm/issues/18)
+
 ## 1.0.0 (2026-04-10)
 
 

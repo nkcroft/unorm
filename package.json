@@ -1,6 +1,6 @@
 {
   "name": "@nkcroft/unorm",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Fast and lightweight Node.js based Unicode Normalization CLI tool and library",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
