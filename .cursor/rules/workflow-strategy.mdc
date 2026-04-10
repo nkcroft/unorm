@@ -1,0 +1,19 @@
+---
+description: Enforce branch strategy and step-by-step commits
+globs: "*"
+alwaysApply: true
+---
+
+# Workflow Strategy
+
+본 프로젝트는 안정적인 개발과 이력 관리를 위해 다음 워크플로우를 엄격히 준수합니다.
+
+1. **새로운 작업은 항상 새 브랜치에서 진행합니다.**
+   - 브랜치명 규칙: `feat/기능명`, `fix/버그명`, `docs/문서명` 등
+   - 예: `git checkout -b feat/stream-processing`
+2. **작업은 논리적인 단위로 단계별로 커밋(Step-by-step commit)합니다.**
+   - 한 번에 너무 많은 변경사항을 뭉뚱그려 커밋하지 마세요.
+   - 기능 구현, 테스트 작성, 리팩토링 등 의미 있는 단위로 나누어 커밋합니다.
+3. **커밋하기 전에 `.gitignore` 파일이 올바르게 구성되어 있는지 반드시 확인합니다.**
+   - 불필요한 빌드 결과물(`dist/`), 패키지 모듈(`node_modules/`), 환경 설정 파일(`.env`), OS 임시 파일(`.DS_Store`) 등이 커밋되지 않도록 방지합니다.
+4. **작업이 완료되면 `main` 브랜치로 PR(Pull Request)을 생성하여 병합하는 것을 원칙으로 합니다.**

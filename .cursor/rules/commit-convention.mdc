@@ -1,0 +1,25 @@
+---
+description: Enforce Conventional Commits for git commit messages
+globs: "*"
+alwaysApply: true
+---
+
+# Commit Convention
+
+모든 커밋 메시지는 **Conventional Commits** 규칙을 따릅니다.
+
+- `feat:` 새로운 기능 추가
+- `fix:` 버그 수정
+- `docs:` 문서 수정
+- `style:` 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우
+- `refactor:` 코드 리팩토링 (기능 변경 없음)
+- `test:` 테스트 코드, 리팩토링 테스트 코드 추가
+- `chore:` 빌드 업무 수정, 패키지 매니저 수정
+
+```text
+// ❌ BAD
+Added stream normalization support
+
+// ✅ GOOD
+feat: add stream normalization support
+```

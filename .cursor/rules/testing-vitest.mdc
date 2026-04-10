@@ -1,0 +1,30 @@
+---
+description: Use Vitest for testing instead of Jest
+globs: "**/*.test.ts"
+alwaysApply: false
+---
+
+# Testing with Vitest
+
+본 프로젝트는 테스트 도구로 `vitest`를 사용합니다.
+
+- `jest` 대신 `vitest`에서 제공하는 `describe`, `it`, `expect` 등을 `import`하여 사용하세요.
+- 테스트 파일 확장자는 `.test.ts`를 사용합니다.
+
+```typescript
+// ❌ BAD
+test('should normalize string', () => {
+  expect(normalizeString('ㅎㅏㄴㄱㅡㄹ', 'NFC')).toBe('한글');
+});
+
+// ✅ GOOD
+import { describe, it, expect } from 'vitest'
+import { normalizeString } from '../src/normalize'
+
+describe('normalizeString', () => {
+  it('should normalize NFD to NFC', () => {
+    const nfdString = 'ㅎㅏㄴㄱㅡㄹ'
+    expect(normalizeString(nfdString, 'NFC')).toBe('한글')
+  })
+})
+```
