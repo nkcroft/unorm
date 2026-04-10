@@ -8,8 +8,8 @@ import { NormalizeStream } from './stream'
 
 const VERSION = '0.1.0'
 
-// 한글 자모 범위: U+1100~U+11FF (Hangul Jamo), U+A960~U+A97F (Extended-A), U+D7B0~U+D7FF (Extended-B)
-// 결합 문자 범위: U+0300~U+036F, U+1DC0~U+1DFF (Combining Diacritical Marks)
+// Hangul Jamo ranges: U+1100~U+11FF (Jamo), U+A960~U+A97F (Extended-A), U+D7B0~U+D7FF (Extended-B)
+// Combining character ranges: U+0300~U+036F, U+1DC0~U+1DFF (Combining Diacritical Marks)
 function isDecomposedChar(cp: number): boolean {
   return (cp >= 0x1100 && cp <= 0x11ff) ||
     (cp >= 0xa960 && cp <= 0xa97f) ||
@@ -18,8 +18,8 @@ function isDecomposedChar(cp: number): boolean {
     (cp >= 0x1dc0 && cp <= 0x1dff)
 }
 
-// 각 코드포인트를 U+XXXX 표기법으로 변환
-// 자소 분리된 문자는 강조 표시
+// Convert each codepoint to U+XXXX notation.
+// Decomposed (NFD) characters are highlighted with brackets.
 function toCodepoints(str: string): string {
   return [...str].map(ch => {
     const cp = ch.codePointAt(0)!
@@ -28,7 +28,7 @@ function toCodepoints(str: string): string {
   }).join(' ')
 }
 
-// 자소 분리된 문자는 \uXXXX 이스케이프로, 일반 문자는 그대로 출력
+// Render decomposed characters as \uXXXX escape sequences; pass normal characters through as-is.
 function toEscaped(str: string): string {
   return [...str].map(ch => {
     const cp = ch.codePointAt(0)!
@@ -41,7 +41,7 @@ function toEscaped(str: string): string {
   }).join('')
 }
 
-// 문자열의 정규화 형태를 감지
+// Detect the normalization form of the given string.
 function detectForm(str: string): string {
   if (str === str.normalize('NFC') && str !== str.normalize('NFD')) return 'NFC'
   if (str === str.normalize('NFD') && str !== str.normalize('NFC')) return 'NFD'
@@ -74,7 +74,7 @@ export function runCli(args: string[] = process.argv) {
   const options = program.opts()
   const form = options.form.toUpperCase() as NormalizationForm
 
-  // 1. --test-git-user 옵션 처리 (읽기 전용 진단)
+  // 1. --test-git-user: read-only diagnosis of git global user.name
   if (options.testGitUser) {
     try {
       const currentName = execSync('git config --global user.name', { encoding: 'utf8' }).trim()
@@ -112,7 +112,7 @@ export function runCli(args: string[] = process.argv) {
     }
   }
 
-  // 2. --fix-git-user 옵션 처리
+  // 2. --fix-git-user: normalize git global user.name to NFC
   if (options.fixGitUser) {
     try {
       const currentName = execSync('git config --global user.name', { encoding: 'utf8' }).trim()
@@ -141,7 +141,7 @@ export function runCli(args: string[] = process.argv) {
     }
   }
 
-  // 2. -t, --test 옵션 처리
+  // 3. -t, --test: display detailed normalization info for the given string
   if (options.test) {
     const input = options.test
     const result = normalizeString(input, form)
@@ -169,7 +169,7 @@ export function runCli(args: string[] = process.argv) {
     process.exit(0)
   }
 
-  // 3. 스트림 변환 처리 (파일 입출력 또는 stdin/stdout)
+  // 4. Stream normalization: file I/O or stdin/stdout
   const inputStream = options.input ? createReadStream(options.input) : process.stdin
   const outputStream = options.output ? createWriteStream(options.output) : process.stdout
   const normalizeStream = new NormalizeStream({ form })
@@ -184,6 +184,6 @@ export function runCli(args: string[] = process.argv) {
     process.exit(1)
   })
 
-  // 파이프 연결
+  // Wire up the pipeline
   inputStream.pipe(normalizeStream).pipe(outputStream)
 }
