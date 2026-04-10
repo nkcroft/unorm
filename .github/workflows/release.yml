@@ -63,11 +63,29 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
+        id: publish
         if: ${{ steps.release.outputs.release_created }}
         run: npm publish --access public
+        continue-on-error: true
+
+      - name: Cleanup tag/release on publish failure
+        if: ${{ steps.release.outputs.release_created && steps.release.outputs.tag_name && steps.publish.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+        run: |
+          echo "Publish failed. Cleaning up GitHub Release and tag: ${TAG_NAME}"
+
+          # Delete GitHub Release (if it exists)
+          gh release delete "${TAG_NAME}" --yes || true
+
+          # Delete remote tag (if it exists)
+          git push origin ":refs/tags/${TAG_NAME}" || true
+
+          echo "Cleanup completed for ${TAG_NAME}."
 
       - name: Sync release changes back to main
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.release_created && steps.publish.outcome != 'failure' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
