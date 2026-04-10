@@ -138,6 +138,7 @@ export function runCli(args: string[] = process.argv) {
     .option('-t, --test <string>', 'test string normalization')
     .option('--test-git-user', 'test current git global user.name normalization form (read-only)')
     .option('--fix-git-user', 'fix NFD separated git global user.name to NFC')
+    .argument('[text...]', 'text to normalize (when no -i/--input is provided)')
     .showHelpAfterError(true)
     .exitOverride()
 
@@ -218,7 +219,19 @@ export function runCli(args: string[] = process.argv) {
     }
   }
 
-  // 3. -t, --test: display detailed normalization info for the given string
+  // 3. Positional string input: normalize provided text and print to stdout
+  // Example: `unorm -f NFD "한글"`
+  //
+  // If input/output is provided, we assume stream/file mode instead.
+  if (program.args.length > 0 && !options.input && !options.output) {
+    const input = program.args.join(' ')
+    const result = normalizeString(input, form)
+    process.stdout.write(result)
+    if (!result.endsWith('\n')) process.stdout.write('\n')
+    process.exit(0)
+  }
+
+  // 4. -t, --test: display detailed normalization info for the given string
   if (options.test) {
     const input = options.test
     const result = normalizeString(input, form)
@@ -246,7 +259,7 @@ export function runCli(args: string[] = process.argv) {
     process.exit(0)
   }
 
-  // 4. Stream normalization: file I/O or stdin/stdout
+  // 5. Stream normalization: file I/O or stdin/stdout
   if (program.args.length > 0) {
     console.error(pc.red(`Unknown argument(s): ${program.args.join(' ')}`))
     program.outputHelp()
