@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/nkcroft/unorm/compare/v1.0.0...v1.0.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* inject package version at build time via vite define ([#24](https://github.com/nkcroft/unorm/issues/24)) ([75e8094](https://github.com/nkcroft/unorm/commit/75e8094493315173391dd3bdb8f4d8029e6fc082)), closes [#23](https://github.com/nkcroft/unorm/issues/23)
+* pass NPM_TOKEN as NODE_AUTH_TOKEN in publish step ([#19](https://github.com/nkcroft/unorm/issues/19)) ([4515676](https://github.com/nkcroft/unorm/commit/4515676de3f2c3cd8f429fc64ef47c9c8fdde367)), closes [#18](https://github.com/nkcroft/unorm/issues/18)
+
 ## 1.0.0 (2026-04-10)
 
 
