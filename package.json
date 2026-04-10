@@ -28,7 +28,7 @@
     "type": "git",
     "url": "git+https://github.com/nkcroft/unorm.git"
   },
-  "author": "",
+  "author": "Natural Kei <naturalk@nkcroft.com>",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
