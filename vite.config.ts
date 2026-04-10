@@ -1,7 +1,14 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const pkg = require('./package.json')
 
 export default defineConfig({
+  define: {
+    __PKG_VERSION__: JSON.stringify(pkg.version)
+  },
   build: {
     lib: {
       entry: {

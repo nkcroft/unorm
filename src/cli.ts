@@ -6,7 +6,8 @@ import pc from 'picocolors'
 import { normalizeString, NormalizationForm } from './normalize'
 import { NormalizeStream } from './stream'
 
-const VERSION = '0.1.0'
+declare const __PKG_VERSION__: string
+const VERSION = __PKG_VERSION__
 
 // Hangul Jamo ranges: U+1100~U+11FF (Jamo), U+A960~U+A97F (Extended-A), U+D7B0~U+D7FF (Extended-B)
 // Combining character ranges: U+0300~U+036F, U+1DC0~U+1DFF (Combining Diacritical Marks)
