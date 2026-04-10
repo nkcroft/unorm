@@ -4,9 +4,11 @@ import { resolve } from 'path'
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(process.cwd(), 'src/index.ts'),
+      entry: {
+        index: resolve(process.cwd(), 'src/index.ts'),
+        cli: resolve(process.cwd(), 'src/cli.ts')
+      },
       name: 'unorm',
-      fileName: 'index',
       formats: ['es', 'cjs']
     },
     rollupOptions: {
@@ -15,6 +17,8 @@ export default defineConfig({
         'node:fs',
         'node:path',
         'node:process',
+        'node:child_process',
+        'node:string_decoder',
         'commander',
         'picocolors'
       ]
