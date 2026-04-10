@@ -14,7 +14,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write # NPM Provenance (OIDC) 인증을 위한 필수 권한
+  id-token: write
 
 jobs:
   release-please:
@@ -28,7 +28,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
       - name: Install dependencies
@@ -46,13 +45,24 @@ jobs:
           release-type: node
           target-branch: release
 
+      - name: Setup Node.js for publish
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies for publish
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm ci
+
       - name: Build project
         if: ${{ steps.release.outputs.release_created }}
         run: npm run build
 
-      - name: Publish to npm (with Provenance)
+      - name: Publish to npm
         if: ${{ steps.release.outputs.release_created }}
-        run: npm publish --access public --provenance
+        run: npm publish --access public
 
       - name: Sync release changes back to main
         if: ${{ steps.release.outputs.release_created }}
@@ -76,7 +86,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
@@ -86,5 +96,5 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Publish to npm (with Provenance)
-        run: npm publish --access public --provenance
+      - name: Publish to npm
+        run: npm publish --access public
