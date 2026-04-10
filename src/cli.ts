@@ -66,6 +66,7 @@ export function runCli(args: string[] = process.argv) {
     .option('-i, --input <file>', 'input file path (uses stdin if not provided)')
     .option('-o, --output <file>', 'output file path (uses stdout if not provided)')
     .option('-t, --test <string>', 'test string normalization')
+    .option('--test-git-user', 'test current git global user.name normalization form (read-only)')
     .option('--fix-git-user', 'fix NFD separated git global user.name to NFC')
 
   program.parse(args)
@@ -73,7 +74,45 @@ export function runCli(args: string[] = process.argv) {
   const options = program.opts()
   const form = options.form.toUpperCase() as NormalizationForm
 
-  // 1. --fix-git-user 옵션 처리
+  // 1. --test-git-user 옵션 처리 (읽기 전용 진단)
+  if (options.testGitUser) {
+    try {
+      const currentName = execSync('git config --global user.name', { encoding: 'utf8' }).trim()
+      if (!currentName) {
+        console.error(pc.yellow('Git global user.name is not set.'))
+        process.exit(1)
+      }
+
+      const detectedForm = detectForm(currentName)
+      const nfcName = normalizeString(currentName, 'NFC')
+
+      console.log()
+      console.log(pc.bold('[ git config --global user.name ]'))
+      console.log(`  Visual  : ${currentName}`)
+      console.log(`  Form    : ${formatForm(detectedForm)}`)
+      console.log(`  Length  : ${pc.yellow(String(currentName.length))} chars`)
+      console.log(`  Glyphs  : ${pc.cyan(String([...currentName].length))} graphemes`)
+      console.log(`  Escaped : ${pc.gray(toEscaped(currentName))}`)
+      console.log(`  CodePts : ${pc.gray(toCodepoints(currentName))}`)
+
+      if (currentName !== nfcName) {
+        console.log()
+        console.log(pc.yellow('  ⚠ NFD detected. Run `unorm --fix-git-user` to normalize.'))
+      } else {
+        console.log()
+        console.log(pc.green('  ✓ Already normalized (NFC). No action needed.'))
+      }
+      console.log()
+
+      process.exit(0)
+    } catch (error) {
+      console.error(pc.red('Failed to read git user.name. Is git installed?'))
+      console.error(error instanceof Error ? error.message : String(error))
+      process.exit(1)
+    }
+  }
+
+  // 2. --fix-git-user 옵션 처리
   if (options.fixGitUser) {
     try {
       const currentName = execSync('git config --global user.name', { encoding: 'utf8' }).trim()

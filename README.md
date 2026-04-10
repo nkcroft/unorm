@@ -53,16 +53,21 @@ Options:
   -f, --form <type>    normalization form (NFC, NFD, NFKC, NFKD) (default: "NFC")
   -i, --input <file>   input file path (uses stdin if not provided)
   -o, --output <file>  output file path (uses stdout if not provided)
-  -t, --test <string>  test string normalization
+  -t, --test <string>  test string normalization (shows codepoints and escaped form)
+  --test-git-user      test current git global user.name normalization form (read-only)
   --fix-git-user       fix NFD separated git global user.name to NFC
   -h, --help           display help for command
 ```
 
 ### Git 사용자 이름(user.name) 자소 분리 해결
 
-macOS 환경 등에서 Git 전역 사용자 이름이 자소 분리(`NFD`)되어 커밋 로그에 `ㅎㅗㅇㄱㅣㄹㄷㅗㅇ` 처럼 표시되는 현상을 원클릭으로 해결합니다.
+macOS 환경 등에서 Git 전역 사용자 이름이 자소 분리(`NFD`)되어 커밋 로그에 `ㅎㅗㅇㄱㅣㄹㄷㅗㅇ` 처럼 표시되는 현상을 해결합니다.
 
 ```bash
+# 1단계: 현재 상태를 먼저 진단합니다 (읽기 전용, 변경 없음)
+unorm --test-git-user
+
+# 2단계: NFD 감지 시 NFC로 자동 치환합니다
 unorm --fix-git-user
 ```
 
