@@ -14,30 +14,34 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Vitest
+        run: npm run test
+
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:
           release-type: node
           target-branch: release
-          
-      - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
-        
-      - name: Setup Node.js
-        if: ${{ steps.release.outputs.release_created }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22' # OIDC Trusted Publishing을 위해 Node 22+ 권장
-          registry-url: 'https://registry.npmjs.org'
-          
-      - name: Install dependencies
-        if: ${{ steps.release.outputs.release_created }}
-        run: npm ci
-        
+
       - name: Build project
         if: ${{ steps.release.outputs.release_created }}
         run: npm run build
-        
+
       - name: Publish to npm (with Provenance)
         if: ${{ steps.release.outputs.release_created }}
         run: npm publish --access public --provenance
