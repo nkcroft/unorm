@@ -63,11 +63,27 @@ Options:
 
 macOS 환경 등에서 Git 전역 사용자 이름이 자소 분리(`NFD`)되어 커밋 로그에 `ㅎㅗㅇㄱㅣㄹㄷㅗㅇ` 처럼 표시되는 현상을 해결합니다.
 
+#### ⚡ 설치 없이 즉시 실행 (npx 권장)
+
+패키지를 전역 설치하지 않아도 `npx`로 바로 실행할 수 있습니다.
+
 ```bash
-# 1단계: 현재 상태를 먼저 진단합니다 (읽기 전용, 변경 없음)
+# 1단계: 현재 상태 진단 (읽기 전용, 변경 없음)
+npx @nkcroft/unorm --test-git-user
+
+# 2단계: NFD 감지 시 NFC로 자동 치환
+npx @nkcroft/unorm --fix-git-user
+```
+
+#### 전역 설치 후 실행
+
+```bash
+npm install -g @nkcroft/unorm
+
+# 1단계: 현재 상태 진단 (읽기 전용, 변경 없음)
 unorm --test-git-user
 
-# 2단계: NFD 감지 시 NFC로 자동 치환합니다
+# 2단계: NFD 감지 시 NFC로 자동 치환
 unorm --fix-git-user
 ```
 
