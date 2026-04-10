@@ -4,22 +4,28 @@ on:
   push:
     branches:
       - release
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to publish (e.g. v1.0.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
   pull-requests: write
-  id-token: write # NPM Provenance (OIDC) 인증을 위한 필수 권한
+  id-token: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -33,19 +39,30 @@ jobs:
       - name: Run Vitest
         run: npm run test
 
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: node
           target-branch: release
 
+      - name: Setup Node.js for publish
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies for publish
+        if: ${{ steps.release.outputs.release_created }}
+        run: npm ci
+
       - name: Build project
         if: ${{ steps.release.outputs.release_created }}
         run: npm run build
 
-      - name: Publish to npm (with Provenance)
+      - name: Publish to npm
         if: ${{ steps.release.outputs.release_created }}
-        run: npm publish --access public --provenance
+        run: npm publish --access public
 
       - name: Sync release changes back to main
         if: ${{ steps.release.outputs.release_created }}
@@ -55,3 +72,29 @@ jobs:
           git checkout main
           git merge origin/release --no-edit
           git push origin main
+
+  publish:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --access public
