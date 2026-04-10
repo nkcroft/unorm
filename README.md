@@ -73,6 +73,19 @@ npx @nkcroft/unorm --test-git-user
 npx @nkcroft/unorm --fix-git-user
 ```
 
+> [!IMPORTANT]
+> **PATH conflict**: If you have an existing `unorm` script or binary in your `PATH` (e.g. a custom shell script), `npx @nkcroft/unorm` may execute that file instead of the npm package, producing unexpected output.
+>
+> To confirm you are running the correct version:
+> ```bash
+> npx @nkcroft/unorm@latest --version   # should print the latest version number
+> ```
+> If the output does not match, check for a conflicting `unorm` in your PATH:
+> ```bash
+> which unorm
+> ```
+> Rename or remove the conflicting file (e.g. `mv ~/.bin/unorm ~/.bin/unorm-legacy`), then re-run.
+
 #### After global installation
 
 ```bash
@@ -120,6 +133,36 @@ inputStream.pipe(normalizeStream).pipe(outputStream)
 - **Branch Strategy**: All work is done in feature branches (`feat/`, `fix/`, `docs/`, etc.) and merged into `main` via PR. Releases are triggered by merging `main` into the `release` branch via an automated pipeline.
 - **Coding Convention**: Strictly follows the **StandardJS** philosophy (no semicolons, single quotes).
 - **Commit Convention**: All commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+## Troubleshooting
+
+### `npx @nkcroft/unorm` runs a wrong command
+
+If `npx @nkcroft/unorm` produces unexpected output (e.g. `* Input(N): ...` instead of the formatted diagnostic), a local binary named `unorm` in your `PATH` is shadowing the npm package.
+
+**Diagnose:**
+```bash
+which unorm          # reveals the conflicting file path
+npx @nkcroft/unorm@latest --version   # should print the package version
+```
+
+**Fix:**
+```bash
+# Rename the conflicting script so npm package takes precedence
+mv ~/.bin/unorm ~/.bin/unorm-legacy
+```
+
+After renaming, `npx @nkcroft/unorm` will resolve to the npm package correctly.
+
+---
+
+### `--version` reports an old version after `npm cache clean`
+
+`npm cache clean` clears the registry cache but `npx` maintains its own package cache under `~/.npm/_npx/`. If the version still appears stale, specify the version explicitly:
+
+```bash
+npx @nkcroft/unorm@latest --version
+```
 
 ## License
 
