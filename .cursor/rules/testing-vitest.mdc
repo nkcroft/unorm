@@ -6,10 +6,10 @@ alwaysApply: false
 
 # Testing with Vitest
 
-본 프로젝트는 테스트 도구로 `vitest`를 사용합니다.
+This project uses `vitest` as its test runner.
 
-- `jest` 대신 `vitest`에서 제공하는 `describe`, `it`, `expect` 등을 `import`하여 사용하세요.
-- 테스트 파일 확장자는 `.test.ts`를 사용합니다.
+- Import `describe`, `it`, `expect`, etc. from `vitest` — do not use `jest`.
+- Test files must use the `.test.ts` extension.
 
 ```typescript
 // ❌ BAD

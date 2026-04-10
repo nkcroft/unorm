@@ -6,25 +6,25 @@ alwaysApply: true
 
 # Workflow Strategy
 
-본 프로젝트는 안정적인 개발과 이력 관리를 위해 다음 워크플로우를 엄격히 준수합니다.
+This project strictly follows the workflow below for stable development and clean history.
 
-1. **새로운 작업은 항상 새 브랜치에서 진행합니다.**
-   - 브랜치명 규칙: `feat/기능명`, `fix/버그명`, `docs/문서명` 등
-   - 예: `git checkout -b feat/stream-processing`
-2. **작업은 논리적인 단위로 단계별로 커밋(Step-by-step commit)합니다.**
-   - 한 번에 너무 많은 변경사항을 뭉뚱그려 커밋하지 마세요.
-   - 기능 구현, 테스트 작성, 리팩토링 등 의미 있는 단위로 나누어 커밋합니다.
-3. **커밋하기 전에 `.gitignore` 파일이 올바르게 구성되어 있는지 반드시 확인합니다.**
-   - 불필요한 빌드 결과물(`dist/`), 패키지 모듈(`node_modules/`), 환경 설정 파일(`.env`), OS 임시 파일(`.DS_Store`) 등이 커밋되지 않도록 방지합니다.
-4. **작업이 완료되면 `main` 브랜치로 PR(Pull Request)을 생성하여 병합하는 것을 원칙으로 합니다.**
-5. **PR이 `main` 브랜치에 성공적으로 병합된 후에는 불필요한 혼란을 방지하기 위해 해당 작업 브랜치를 로컬 및 원격에서 즉시 삭제(제거)합니다.**
+1. **All new work must be done in a dedicated branch.**
+   - Branch naming: `feat/<name>`, `fix/<name>`, `docs/<name>`, etc.
+   - Example: `git checkout -b feat/stream-processing`
+2. **Commit changes in logical, step-by-step units.**
+   - Avoid bundling too many unrelated changes into a single commit.
+   - Split work into meaningful units: feature implementation, test writing, refactoring, etc.
+3. **Before committing, verify that `.gitignore` is correctly configured.**
+   - Ensure build artifacts (`dist/`), dependencies (`node_modules/`), env files (`.env`), and OS temp files (`.DS_Store`) are excluded.
+4. **When work is complete, open a PR to merge into the `main` branch.**
+5. **After a PR is successfully merged into `main`, delete the branch immediately — both locally and remotely.**
 
-## Issue & PR 처리 규칙
+## Issue & PR Rules
 
-6. **버그 또는 개선사항 발견 시, 코드 수정 전에 반드시 GitHub 이슈를 먼저 등록합니다.**
-   - `gh issue create` 명령어를 사용합니다.
-   - 이슈 제목과 본문은 **반드시 영문**으로 작성합니다.
-   - 이슈 본문에는 Problem / Root Cause / Expected Behavior / Fix 체크리스트를 포함합니다.
-   - 브랜치명에 이슈 번호를 포함합니다. (예: `fix/1-missing-dist-in-publish`)
-7. **PR(Pull Request) 제목과 본문도 반드시 영문으로 작성합니다.**
-   - PR 본문에는 해결한 이슈를 `Closes #N` 형식으로 명시하여 병합 시 이슈가 자동으로 닫히도록 합니다.
+6. **Before fixing any bug or making an improvement, always open a GitHub issue first.**
+   - Use the `gh issue create` command.
+   - Issue titles and bodies must be written in **English**.
+   - Issue body should include: Problem / Root Cause / Expected Behavior / Fix checklist.
+   - Include the issue number in the branch name (e.g., `fix/1-missing-dist-in-publish`).
+7. **PR titles and bodies must also be written in English.**
+   - Reference the resolved issue using `Closes #N` so it closes automatically on merge.
