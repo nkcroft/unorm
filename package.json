@@ -7,7 +7,7 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "bin": {
-    "unorm": "./bin/unorm.js"
+    "unorm": "bin/unorm.js"
   },
   "files": [
     "dist/",
