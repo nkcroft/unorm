@@ -100,6 +100,16 @@ export function runCli(args: string[] = process.argv) {
     process.exit(0)
   }
 
+  // If argv contains no option-like tokens at all, treat it as a literal string input and normalize to NFC.
+  // Example: `unorm "한글"` or `unorm some text`
+  const hasAnyOptionLikeToken = argv.some(looksLikeOptionToken)
+  if (!hasAnyOptionLikeToken) {
+    const input = argv.join(' ')
+    process.stdout.write(normalizeString(input, 'NFC'))
+    if (!input.endsWith('\n')) process.stdout.write('\n')
+    process.exit(0)
+  }
+
   // If user passes something that *looks* like an option but is not a known option,
   // treat it as a literal string input and normalize to NFC.
   //
