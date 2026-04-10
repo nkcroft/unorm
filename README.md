@@ -1,8 +1,25 @@
 # `@nkcroft/unorm`
 
-Fast and lightweight Node.js based Unicode Normalization CLI tool and library.
+[![npm](https://img.shields.io/npm/v/@nkcroft/unorm?label=npm&color=0b7285)](https://www.npmjs.com/package/@nkcroft/unorm)
+[![CI](https://github.com/nkcroft/unorm/actions/workflows/ci.yml/badge.svg)](https://github.com/nkcroft/unorm/actions/workflows/ci.yml)
+[![downloads](https://img.shields.io/npm/dm/@nkcroft/unorm?label=downloads&color=1864ab)](https://www.npmjs.com/package/@nkcroft/unorm)
+![license](https://img.shields.io/npm/l/@nkcroft/unorm?label=license&color=2f9e44)
+![node](https://img.shields.io/node/v/@nkcroft/unorm?label=node&color=5c940d)
 
-Designed to solve Korean Hangul jamo decomposition (NFD) issues that occur when exchanging filenames and text data between macOS and Windows/Linux environments.
+Fast and lightweight Unicode Normalization CLI tool and library for Node.js.
+
+Primarily designed to help diagnose and fix Korean Hangul jamo decomposition (NFD) issues that can occur when exchanging filenames or text between macOS and Windows/Linux.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+- [CLI Usage](#cli-usage)
+- [Library Usage](#library-usage)
+- [Development & Contribution](#development--contribution)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Features
 
@@ -23,6 +40,21 @@ npm install -g @nkcroft/unorm
 
 ```bash
 npm install @nkcroft/unorm
+```
+
+## Quickstart
+
+Normalize a file via pipe (default form: `NFC`):
+
+```bash
+cat mac_nfd_text.txt | unorm > win_nfc_text.txt
+```
+
+Diagnose and fix Git `user.name` issues on macOS (recommended):
+
+```bash
+npx @nkcroft/unorm@latest --test-git-user
+npx @nkcroft/unorm@latest --fix-git-user
 ```
 
 ## CLI Usage
@@ -106,7 +138,7 @@ unorm --fix-git-user
 import { normalizeString } from '@nkcroft/unorm'
 
 // Convert NFD (decomposed) string to NFC
-const nfdString = '한글'
+const nfdString = '한글'.normalize('NFD')
 const nfcString = normalizeString(nfdString, 'NFC')
 
 console.log(nfcString) // '한글'
