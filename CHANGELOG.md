@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.4](https://github.com/nkcroft/unorm/compare/v1.0.3...v1.0.4) (2026-11-05)
+
+
+### Bug Fixes
+
+* accurate diagnostics and safe git user.name update in CLI ([f8d09af](https://github.com/nkcroft/unorm/commit/f8d09afa80b6334fa6f5c60aad4b58ff9b471195)), closes [#36](https://github.com/nkcroft/unorm/issues/36)
+* accurate diagnostics, safe git fix, stream boundary, Windows and types (1.0.4) ([0ad5c6e](https://github.com/nkcroft/unorm/commit/0ad5c6e516ea158b12fcc10b8704ab3d6957fe52))
+* keep base characters with following marks across stream chunks ([1a486a8](https://github.com/nkcroft/unorm/commit/1a486a80f54ff7f1b2079f9e5a131544b735f92b)), closes [#36](https://github.com/nkcroft/unorm/issues/36)
+* run CLI on Windows and ship type declarations ([5d9dc37](https://github.com/nkcroft/unorm/commit/5d9dc37dc1f06e03a3ef1c83cf8e18dbc0e2c7c8)), closes [#36](https://github.com/nkcroft/unorm/issues/36)
+
 ## [1.0.3](https://github.com/nkcroft/unorm/compare/v1.0.2...v1.0.3) (2026-04-10)
 
 
