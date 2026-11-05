@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
 import { spawnSync, execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { delimiter, join, resolve } from 'node:path'
 
 // These tests run the built CLI (bin/unorm.js -> dist/cli.js) exactly as users do.
 const ROOT = resolve(__dirname, '..')
@@ -11,11 +11,11 @@ const BIN = join(ROOT, 'bin', 'unorm.js')
 let workDir: string
 let gitConfig: string
 
-function run (args: string[], input?: string) {
+function run (args: string[], input?: string, env: NodeJS.ProcessEnv = {}) {
   const result = spawnSync(process.execPath, [BIN, ...args], {
     input,
     encoding: 'utf8',
-    env: { ...process.env, GIT_CONFIG_GLOBAL: gitConfig, NO_COLOR: '1', FORCE_COLOR: '0' }
+    env: { ...process.env, GIT_CONFIG_GLOBAL: gitConfig, NO_COLOR: '1', FORCE_COLOR: '0', ...env }
   })
   return { code: result.status, stdout: result.stdout, stderr: result.stderr }
 }
@@ -114,5 +114,33 @@ describe('CLI', () => {
     const { code } = run(['--fix-git-user'])
     expect(code).toBe(0)
     expect(getGitName()).toBe(tricky.normalize('NFC'))
+  })
+
+  it('normalizes piped stdin when no arguments are given', () => {
+    const { code, stdout } = run([], `${NAME_NFD}\n`)
+    expect(code).toBe(0)
+    expect(stdout).toBe(`${NAME_NFC}\n`)
+  })
+
+  it('--test-git-user explains when git is not installed', () => {
+    const emptyDir = join(workDir, 'empty-bin')
+    mkdirSync(emptyDir)
+    const { code, stderr } = run(['--test-git-user'], undefined, { PATH: emptyDir, Path: emptyDir })
+    expect(code).toBe(1)
+    expect(stderr).toContain('git is not installed or not in PATH')
+  })
+
+  // Simulates macOS without Xcode Command Line Tools, where /usr/bin/git is a stub that fails via xcrun
+  it.skipIf(process.platform === 'win32')('--fix-git-user explains a missing Xcode Command Line Tools git stub', () => {
+    const binDir = join(workDir, 'stub-bin')
+    mkdirSync(binDir)
+    const stub = join(binDir, 'git')
+    writeFileSync(stub, '#!/bin/sh\necho "xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun" >&2\nexit 1\n')
+    chmodSync(stub, 0o755)
+    const { code, stderr } = run(['--fix-git-user'], undefined, { PATH: `${binDir}${delimiter}${process.env.PATH}` })
+    expect(code).toBe(1)
+    expect(stderr).toContain('Xcode Command Line Tools are missing')
+    expect(stderr).toContain('brew install git')
+    expect(stderr).not.toContain('user.name is not set')
   })
 })
