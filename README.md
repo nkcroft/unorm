@@ -200,6 +200,37 @@ const { normalizeString } = require('@nkcroft/unorm')
 
 ## Troubleshooting
 
+### `--test-git-user` / `--fix-git-user` fails on a fresh Mac
+
+On macOS, `/usr/bin/git` is only a stub until the Xcode Command Line Tools are installed. Without them (and without Homebrew `git`), unorm reports:
+
+```text
+git is not usable: the Xcode Command Line Tools are missing.
+Install it with `xcode-select --install` (Xcode Command Line Tools) or `brew install git`.
+```
+
+**Fix:** install either one, then run the command again:
+
+```bash
+xcode-select --install   # or: brew install git
+```
+
+Normalizing text and files (`unorm "..."`, pipes, `-i`/`-o`) does not need git.
+
+---
+
+### `unorm requires Node.js 20.12.0 or newer`
+
+unorm needs Node.js 20.12+. An old Homebrew or system `node` triggers this message. Check and upgrade:
+
+```bash
+node --version
+brew upgrade node        # or: nvm install --lts
+```
+
+---
+
+
 ### `npx @nkcroft/unorm` runs a wrong command
 
 If `npx @nkcroft/unorm` produces unexpected output (e.g. `* Input(N): ...` instead of the formatted diagnostic), a `unorm` binary already in your `PATH` is shadowing the npm package. This can happen if you have previously created your own `unorm` script or installed another tool with the same name.
