@@ -5,6 +5,14 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "type": "module",
   "bin": {
     "unorm": "bin/unorm.js"
@@ -14,12 +22,15 @@
     "bin/"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "fixtures": "node scripts/generate-test-fixtures.mjs",
+    "sample:pipe": "npm run build --silent && sh -c 'mkdir -p tmp && cat tests/mac_nfd_data.txt | node bin/unorm.js -f NFC > tmp/clean_nfc_data.txt' && echo Wrote tmp/clean_nfc_data.txt",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "unicode",
@@ -52,5 +63,9 @@
   "dependencies": {
     "commander": "^14.0.3",
     "picocolors": "^1.1.1"
+  },
+  "homepage": "https://nkcroft.github.io/unorm/",
+  "bugs": {
+    "url": "https://github.com/nkcroft/unorm/issues"
   }
 }
