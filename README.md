@@ -8,6 +8,8 @@
 
 Fast and lightweight Unicode Normalization CLI tool and library for Node.js.
 
+**Website:** <https://nkcroft.github.io/unorm/> (live NFC/NFD checker in your browser)
+
 Primarily designed to help diagnose and fix Korean Hangul jamo decomposition (NFD) issues that can occur when exchanging filenames or text between macOS and Windows/Linux.
 
 ## Table of Contents
@@ -27,6 +29,8 @@ Primarily designed to help diagnose and fix Korean Hangul jamo decomposition (NF
 - **Library API**: Functional API for direct use in Node.js projects via `import`
 - **Safe Stream Processing**: Safely handles chunk boundaries to prevent Hangul jamo from being split during large file conversion
 - **Git User Fix**: One-command fix for NFD-decomposed Git global `user.name` — restores it to proper NFC form
+- **Clear Diagnostics**: Shows form, user-perceived glyphs vs. code points, escapes and code points side by side
+- **Cross-platform**: Works on macOS, Linux and Windows (Node.js 20.12+), ships ESM, CommonJS and TypeScript types
 
 ## Installation
 
@@ -71,6 +75,19 @@ Specify input and output files directly:
 
 ```bash
 unorm -i mac_nfd_text.txt -o win_nfc_text.txt -f NFC
+```
+
+Normalize a literal string (optionally into a file with `-o`):
+
+```bash
+unorm "한글"
+unorm -f NFD -o out.txt "한글"
+```
+
+Inspect a string (`-f` sets the target form for the result section):
+
+```bash
+unorm -t "$(git config --global user.name)"
 ```
 
 ### Options
@@ -130,6 +147,15 @@ unorm --test-git-user
 unorm --fix-git-user
 ```
 
+Example output — the glyphs look the same, but the encoding changes from 8 decomposed jamo to 3 syllables:
+
+```text
+Successfully normalized git user.name to NFC!
+  Before : 김의연  NFD ⚠ (decomposed), 8 code points  \u1100\u1175\u11B7\u110B\u1174\u110B\u1167\u11AB
+  After  : 김의연  NFC ✓, 3 code points  김의연
+  Glyphs are identical (3); only the encoding changed.
+```
+
 ## Library Usage
 
 ### String normalization (`normalizeString`)
@@ -146,7 +172,7 @@ console.log(nfcString) // '한글'
 
 ### Stream normalization (`NormalizeStream`)
 
-Useful for processing large text files or network streams. Chunk boundary splitting of Hangul jamo is handled safely internally.
+Useful for processing large text files or network streams. Characters are never separated from the combining marks or Hangul jamo that follow them across chunk boundaries (e.g. `가` + `ᆨ` → `각`), so the output is identical to normalizing the whole input at once.
 
 ```typescript
 import { createReadStream, createWriteStream } from 'node:fs'
@@ -157,6 +183,12 @@ const outputStream = createWriteStream('output-nfc.txt')
 const normalizeStream = new NormalizeStream({ form: 'NFC' })
 
 inputStream.pipe(normalizeStream).pipe(outputStream)
+```
+
+CommonJS is supported too:
+
+```js
+const { normalizeString } = require('@nkcroft/unorm')
 ```
 
 ## Development & Contribution
