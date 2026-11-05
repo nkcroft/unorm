@@ -1,59 +1,96 @@
 import { Command, CommanderError } from 'commander'
-import { createReadStream, createWriteStream } from 'node:fs'
-import { execSync } from 'node:child_process'
+import { createReadStream, createWriteStream, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import process from 'node:process'
 import pc from 'picocolors'
-import { normalizeString, NormalizationForm } from './normalize'
+import { normalizeString } from './normalize'
+import {
+  NORMALIZATION_FORMS,
+  countCodePoints,
+  countGraphemes,
+  detectForm,
+  parseForm,
+  toCodepoints,
+  toEscaped,
+  type DetectedForm
+} from './unicode'
 import { NormalizeStream } from './stream'
 
 declare const __PKG_VERSION__: string
 const VERSION = __PKG_VERSION__
 
-// Hangul Jamo ranges: U+1100~U+11FF (Jamo), U+A960~U+A97F (Extended-A), U+D7B0~U+D7FF (Extended-B)
-// Combining character ranges: U+0300~U+036F, U+1DC0~U+1DFF (Combining Diacritical Marks)
-function isDecomposedChar(cp: number): boolean {
-  return (cp >= 0x1100 && cp <= 0x11ff) ||
-    (cp >= 0xa960 && cp <= 0xa97f) ||
-    (cp >= 0xd7b0 && cp <= 0xd7ff) ||
-    (cp >= 0x0300 && cp <= 0x036f) ||
-    (cp >= 0x1dc0 && cp <= 0x1dff)
+const FORM_STYLE: Record<DetectedForm, (s: string) => string> = {
+  NFC: s => pc.green(s + ' ✓'),
+  NFKC: s => pc.green(s + ' ✓'),
+  'NFC=NFD': s => pc.green(s + ' ✓ (no composable characters)'),
+  NFD: s => pc.red(s + ' ⚠ (decomposed)'),
+  NFKD: s => pc.red(s + ' ⚠ (decomposed)'),
+  MIXED: s => pc.yellow(s + ' ⚠ (partially decomposed)')
 }
 
-// Convert each codepoint to U+XXXX notation.
-// Decomposed (NFD) characters are highlighted with brackets.
-function toCodepoints(str: string): string {
-  return [...str].map(ch => {
-    const cp = ch.codePointAt(0)!
-    const hex = 'U+' + cp.toString(16).toUpperCase().padStart(4, '0')
-    return isDecomposedChar(cp) ? `[${hex}]` : hex
-  }).join(' ')
+function formatForm(form: DetectedForm): string {
+  return FORM_STYLE[form](form)
 }
 
-// Render decomposed characters as \uXXXX escape sequences; pass normal characters through as-is.
-function toEscaped(str: string): string {
-  return [...str].map(ch => {
-    const cp = ch.codePointAt(0)!
-    if (isDecomposedChar(cp)) {
-      return cp > 0xffff
-        ? `\\u{${cp.toString(16).toUpperCase()}}`
-        : `\\u${cp.toString(16).toUpperCase().padStart(4, '0')}`
-    }
-    return ch
-  }).join('')
+// Print a detailed breakdown of a string's normalization state.
+function printDetails(title: string, str: string, visual: (s: string) => string = s => s): void {
+  console.log(pc.bold(title))
+  console.log(`  Visual  : ${visual(str)}`)
+  console.log(`  Form    : ${formatForm(detectForm(str))}`)
+  console.log(`  Glyphs  : ${pc.cyan(String(countGraphemes(str)))} graphemes (user-perceived characters)`)
+  console.log(`  Length  : ${pc.yellow(String(countCodePoints(str)))} code points, ${str.length} UTF-16 units`)
+  console.log(`  Escaped : ${pc.gray(toEscaped(str))}`)
+  console.log(`  CodePts : ${pc.gray(toCodepoints(str))}`)
 }
 
-// Detect the normalization form of the given string.
-function detectForm(str: string): string {
-  if (str === str.normalize('NFC') && str !== str.normalize('NFD')) return 'NFC'
-  if (str === str.normalize('NFD') && str !== str.normalize('NFC')) return 'NFD'
-  if (str === str.normalize('NFKC')) return 'NFKC'
-  if (str === str.normalize('NFKD')) return 'NFKD'
-  return 'NFC/NFD'
+// One-line summary used for before/after comparisons.
+function summarize(str: string): string {
+  return `${formatForm(detectForm(str))}, ${countCodePoints(str)} code points  ${pc.gray(toEscaped(str))}`
 }
 
-function formatForm(form: string): string {
-  if (form === 'NFD' || form === 'NFKD') return pc.red(form) + pc.red(' ⚠ (decomposed)')
-  return pc.green(form) + pc.green(' ✓')
+class GitUserError extends Error {}
+
+function readGitUserName(): string {
+  try {
+    return execFileSync('git', ['config', '--global', 'user.name'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe']
+    }).replace(/\r?\n$/, '')
+  } catch (error) {
+    const err = error as NodeJS.ErrnoException & { status?: number }
+    if (err.code === 'ENOENT') throw new GitUserError('git is not installed or not in PATH.')
+    // `git config` exits with status 1 when the key is not set
+    if (err.status === 1) throw new GitUserError('Git global user.name is not set.')
+    throw error
+  }
+}
+
+function writeGitUserName(name: string): void {
+  // Pass the value as an argument (no shell) so quotes, `$` or backticks in the name are safe
+  execFileSync('git', ['config', '--global', 'user.name', name], { stdio: ['ignore', 'pipe', 'pipe'] })
+}
+
+function reportGitError(action: string, error: unknown): never {
+  if (error instanceof GitUserError) {
+    console.error(pc.yellow(error.message))
+  } else {
+    console.error(pc.red(`Failed to ${action} git user.name.`))
+    console.error(error instanceof Error ? error.message : String(error))
+  }
+  process.exit(1)
+}
+
+function buildProgram(): Command {
+  return new Command()
+    .name('unorm')
+    .description('Fast and lightweight Unicode Normalization CLI tool')
+    .version(VERSION, '-v, --version')
+    .option('-f, --form <type>', 'normalization form (NFC, NFD, NFKC, NFKD)', 'NFC')
+    .option('-i, --input <file>', 'input file path (uses stdin if not provided)')
+    .option('-o, --output <file>', 'output file path (uses stdout if not provided)')
+    .option('-t, --test <string>', 'test string normalization')
+    .option('--test-git-user', 'test current git global user.name normalization form (read-only)')
+    .option('--fix-git-user', 'fix NFD separated git global user.name to NFC')
 }
 
 function looksLikeOptionToken(token: string): boolean {
@@ -85,18 +122,7 @@ export function runCli(args: string[] = process.argv) {
 
   // No args: show help instead of hanging on stdin
   if (argv.length === 0) {
-    const tmp = new Command()
-      .name('unorm')
-      .description('Fast and lightweight Unicode Normalization CLI tool')
-      .version(VERSION, '-v, --version')
-      .option('-f, --form <type>', 'normalization form (NFC, NFD, NFKC, NFKD)', 'NFC')
-      .option('-i, --input <file>', 'input file path (uses stdin if not provided)')
-      .option('-o, --output <file>', 'output file path (uses stdout if not provided)')
-      .option('-t, --test <string>', 'test string normalization')
-      .option('--test-git-user', 'test current git global user.name normalization form (read-only)')
-      .option('--fix-git-user', 'fix NFD separated git global user.name to NFC')
-
-    tmp.outputHelp()
+    buildProgram().outputHelp()
     process.exit(0)
   }
 
@@ -126,18 +152,9 @@ export function runCli(args: string[] = process.argv) {
     process.exit(0)
   }
 
-  const program = new Command()
+  const program = buildProgram()
 
   program
-    .name('unorm')
-    .description('Fast and lightweight Unicode Normalization CLI tool')
-    .version(VERSION, '-v, --version')
-    .option('-f, --form <type>', 'normalization form (NFC, NFD, NFKC, NFKD)', 'NFC')
-    .option('-i, --input <file>', 'input file path (uses stdin if not provided)')
-    .option('-o, --output <file>', 'output file path (uses stdout if not provided)')
-    .option('-t, --test <string>', 'test string normalization')
-    .option('--test-git-user', 'test current git global user.name normalization form (read-only)')
-    .option('--fix-git-user', 'fix NFD separated git global user.name to NFC')
     .argument('[text...]', 'text to normalize (when no -i/--input is provided)')
     .showHelpAfterError(true)
     .exitOverride()
@@ -151,84 +168,90 @@ export function runCli(args: string[] = process.argv) {
   }
 
   const options = program.opts()
-  const form = options.form.toUpperCase() as NormalizationForm
+  const form = parseForm(options.form)
+  if (!form) {
+    console.error(pc.red(`Invalid normalization form: ${options.form}`))
+    console.error(`Supported forms: ${NORMALIZATION_FORMS.join(', ')} (case-insensitive)`)
+    process.exit(1)
+  }
 
   // 1. --test-git-user: read-only diagnosis of git global user.name
   if (options.testGitUser) {
+    let currentName: string
     try {
-      const currentName = execSync('git config --global user.name', { encoding: 'utf8' }).trim()
-      if (!currentName) {
-        console.error(pc.yellow('Git global user.name is not set.'))
-        process.exit(1)
-      }
-
-      const detectedForm = detectForm(currentName)
-      const nfcName = normalizeString(currentName, 'NFC')
-
-      console.log()
-      console.log(pc.bold('[ git config --global user.name ]'))
-      console.log(`  Visual  : ${currentName}`)
-      console.log(`  Form    : ${formatForm(detectedForm)}`)
-      console.log(`  Length  : ${pc.yellow(String(currentName.length))} chars`)
-      console.log(`  Glyphs  : ${pc.cyan(String([...currentName].length))} graphemes`)
-      console.log(`  Escaped : ${pc.gray(toEscaped(currentName))}`)
-      console.log(`  CodePts : ${pc.gray(toCodepoints(currentName))}`)
-
-      if (currentName !== nfcName) {
-        console.log()
-        console.log(pc.yellow('  ⚠ NFD detected. Run `unorm --fix-git-user` to normalize.'))
-      } else {
-        console.log()
-        console.log(pc.green('  ✓ Already normalized (NFC). No action needed.'))
-      }
-      console.log()
-
-      process.exit(0)
+      currentName = readGitUserName()
     } catch (error) {
-      console.error(pc.red('Failed to read git user.name. Is git installed?'))
-      console.error(error instanceof Error ? error.message : String(error))
-      process.exit(1)
+      reportGitError('read', error)
     }
+
+    console.log()
+    printDetails('[ git config --global user.name ]', currentName)
+    console.log()
+    if (currentName !== normalizeString(currentName, 'NFC')) {
+      console.log(pc.yellow('  ⚠ Not NFC. Run `unorm --fix-git-user` to normalize.'))
+    } else {
+      console.log(pc.green('  ✓ Already normalized (NFC). No action needed.'))
+    }
+    console.log()
+    process.exit(0)
   }
 
   // 2. --fix-git-user: normalize git global user.name to NFC
   if (options.fixGitUser) {
+    let currentName: string
     try {
-      const currentName = execSync('git config --global user.name', { encoding: 'utf8' }).trim()
-      if (!currentName) {
-        console.error(pc.yellow('Git global user.name is not set.'))
-        process.exit(1)
-      }
-
-      const normalizedName = normalizeString(currentName, 'NFC')
-      
-      if (currentName === normalizedName) {
-        console.log(pc.green('Git user.name is already normalized (NFC).'))
-        console.log(`Current: ${pc.cyan(currentName)}`)
-        process.exit(0)
-      }
-
-      execSync(`git config --global user.name "${normalizedName}"`)
-      console.log(pc.green('Successfully normalized git user.name to NFC!'))
-      console.log(`Before: ${pc.red(currentName)}`)
-      console.log(`After : ${pc.cyan(normalizedName)}`)
-      process.exit(0)
+      currentName = readGitUserName()
     } catch (error) {
-      console.error(pc.red('Failed to fix git user.name. Is git installed?'))
-      console.error(error instanceof Error ? error.message : String(error))
+      reportGitError('read', error)
+    }
+
+    const normalizedName = normalizeString(currentName, 'NFC')
+    if (currentName === normalizedName) {
+      console.log(pc.green('Git user.name is already normalized (NFC). No changes made.'))
+      console.log(`Current: ${pc.cyan(currentName)}  ${summarize(currentName)}`)
+      process.exit(0)
+    }
+
+    let savedName: string
+    try {
+      writeGitUserName(normalizedName)
+      savedName = readGitUserName()
+    } catch (error) {
+      reportGitError('update', error)
+    }
+
+    if (savedName !== normalizedName) {
+      console.error(pc.red('git user.name was written but reads back differently:'))
+      console.error(`Saved : ${summarize(savedName)}`)
       process.exit(1)
     }
+
+    console.log(pc.green('Successfully normalized git user.name to NFC!'))
+    console.log(`  Before : ${pc.red(currentName)}  ${summarize(currentName)}`)
+    console.log(`  After  : ${pc.cyan(savedName)}  ${summarize(savedName)}`)
+    console.log(pc.gray(`  Glyphs are identical (${countGraphemes(savedName)}); only the encoding changed.`))
+    process.exit(0)
   }
 
   // 3. Positional string input: normalize provided text and print to stdout
   // Example: `unorm -f NFD "한글"`
   //
   // If input/output is provided, we assume stream/file mode instead.
-  if (program.args.length > 0 && !options.input && !options.output) {
+  // With -o, the normalized text is written to the output file instead of stdout.
+  if (program.args.length > 0 && !options.input && !options.test) {
     const input = program.args.join(' ')
-    const result = normalizeString(input, form)
-    process.stdout.write(result)
-    if (!result.endsWith('\n')) process.stdout.write('\n')
+    let result = normalizeString(input, form)
+    if (!result.endsWith('\n')) result += '\n'
+    if (options.output) {
+      try {
+        writeFileSync(options.output, result)
+      } catch (error) {
+        console.error(pc.red(`Output file error: ${error instanceof Error ? error.message : String(error)}`))
+        process.exit(1)
+      }
+    } else {
+      process.stdout.write(result)
+    }
     process.exit(0)
   }
 
@@ -236,25 +259,11 @@ export function runCli(args: string[] = process.argv) {
   if (options.test) {
     const input = options.test
     const result = normalizeString(input, form)
-    const inputForm = detectForm(input)
 
     console.log()
-    console.log(pc.bold('[ Input ]'))
-    console.log(`  Visual  : ${input}`)
-    console.log(`  Form    : ${formatForm(inputForm)}`)
-    console.log(`  Length  : ${pc.yellow(String(input.length))} chars`)
-    console.log(`  Glyphs  : ${pc.cyan(String([...input].length))} graphemes`)
-    console.log(`  Escaped : ${pc.gray(toEscaped(input))}`)
-    console.log(`  CodePts : ${pc.gray(toCodepoints(input))}`)
-
+    printDetails('[ Input ]', input)
     console.log()
-    console.log(pc.bold(`[ Result → ${form} ]`))
-    console.log(`  Visual  : ${pc.green(result)}`)
-    console.log(`  Form    : ${formatForm(detectForm(result))}`)
-    console.log(`  Length  : ${pc.yellow(String(result.length))} chars`)
-    console.log(`  Glyphs  : ${pc.cyan(String([...result].length))} graphemes`)
-    console.log(`  Escaped : ${pc.gray(toEscaped(result))}`)
-    console.log(`  CodePts : ${pc.gray(toCodepoints(result))}`)
+    printDetails(`[ Result → ${form} ]`, result, pc.green)
     console.log()
 
     process.exit(0)
