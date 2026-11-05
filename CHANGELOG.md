@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.5](https://github.com/nkcroft/unorm/compare/v1.0.4...v1.0.5) (2026-11-05)
+
+
+### Bug Fixes
+
+* clear errors for missing git / Xcode CLT and old Node, normalize piped stdin (1.0.5) ([b8279f1](https://github.com/nkcroft/unorm/commit/b8279f1498487ca7bc75ba8c88d6b57132dadda4))
+* explain missing Xcode Command Line Tools and normalize piped stdin ([5cdfa15](https://github.com/nkcroft/unorm/commit/5cdfa159bdf34d39aa0ccd6a920f067ac9810e34)), closes [#40](https://github.com/nkcroft/unorm/issues/40)
+* report unsupported Node.js versions with an upgrade hint ([2e27327](https://github.com/nkcroft/unorm/commit/2e273273d840e761092082cf58d3049bbe42b471)), closes [#40](https://github.com/nkcroft/unorm/issues/40)
+
 ## [1.0.4](https://github.com/nkcroft/unorm/compare/v1.0.3...v1.0.4) (2026-11-05)
 
 
