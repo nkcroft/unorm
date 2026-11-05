@@ -50,24 +50,58 @@ function summarize(str: string): string {
 
 class GitUserError extends Error {}
 
-function readGitUserName(): string {
+const MACOS_GIT_HINT = 'Install it with `xcode-select --install` (Xcode Command Line Tools) or `brew install git`.'
+const GIT_MISSING_HINT = process.platform === 'darwin'
+  ? MACOS_GIT_HINT
+  : 'Install git and make sure it is in your PATH.'
+
+// macOS ships a /usr/bin/git stub that only works once the Xcode Command Line Tools are installed.
+// Without them it prints an xcrun error (and may open an install dialog) instead of running git.
+const XCODE_CLT_MISSING = /xcrun: error|invalid active developer path|xcode-select|CommandLineTools/i
+
+type ExecError = NodeJS.ErrnoException & { status?: number | null, stderr?: string | Buffer }
+
+function toGitUserError(error: unknown): unknown {
+  const err = error as ExecError
+  const stderr = String(err.stderr ?? '').trim()
+
+  if (err.code === 'ENOENT') {
+    return new GitUserError(`git is not installed or not in PATH. ${GIT_MISSING_HINT}`)
+  }
+  if (XCODE_CLT_MISSING.test(stderr)) {
+    return new GitUserError(`git is not usable: the Xcode Command Line Tools are missing.\n${MACOS_GIT_HINT}\n\n${stderr}`)
+  }
+  if (stderr) {
+    return new GitUserError(`git failed (exit code ${err.status ?? 'unknown'}):\n${stderr}`)
+  }
+  return error
+}
+
+function runGit(args: string[]): string {
   try {
-    return execFileSync('git', ['config', '--global', 'user.name'], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe']
-    }).replace(/\r?\n$/, '')
+    return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
   } catch (error) {
-    const err = error as NodeJS.ErrnoException & { status?: number }
-    if (err.code === 'ENOENT') throw new GitUserError('git is not installed or not in PATH.')
-    // `git config` exits with status 1 when the key is not set
-    if (err.status === 1) throw new GitUserError('Git global user.name is not set.')
+    throw toGitUserError(error)
+  }
+}
+
+function readGitUserName(): string {
+  let name: string
+  try {
+    name = runGit(['config', '--global', 'user.name'])
+  } catch (error) {
+    // `git config` exits with status 1 and no output when the key is not set
+    if (!(error instanceof GitUserError) && (error as ExecError).status === 1) {
+      throw new GitUserError('Git global user.name is not set.')
+    }
     throw error
   }
+  return name.replace(/\r?\n$/, '')
 }
 
 function writeGitUserName(name: string): void {
   // Pass the value as an argument (no shell) so quotes, `$` or backticks in the name are safe
-  execFileSync('git', ['config', '--global', 'user.name', name], { stdio: ['ignore', 'pipe', 'pipe'] })
+  runGit(['config', '--global', 'user.name', name])
 }
 
 function reportGitError(action: string, error: unknown): never {
@@ -120,8 +154,9 @@ function isKnownOptionToken(token: string): boolean {
 export function runCli(args: string[] = process.argv) {
   const argv = args.slice(2)
 
-  // No args: show help instead of hanging on stdin
-  if (argv.length === 0) {
+  // No args on an interactive terminal: show help instead of hanging on stdin.
+  // With piped input (`cat file | unorm`), fall through to stream normalization.
+  if (argv.length === 0 && process.stdin.isTTY) {
     buildProgram().outputHelp()
     process.exit(0)
   }
@@ -129,7 +164,7 @@ export function runCli(args: string[] = process.argv) {
   // If argv contains no option-like tokens at all, treat it as a literal string input and normalize to NFC.
   // Example: `unorm "한글"` or `unorm some text`
   const hasAnyOptionLikeToken = argv.some(looksLikeOptionToken)
-  if (!hasAnyOptionLikeToken) {
+  if (argv.length > 0 && !hasAnyOptionLikeToken) {
     const input = argv.join(' ')
     process.stdout.write(normalizeString(input, 'NFC'))
     if (!input.endsWith('\n')) process.stdout.write('\n')
