@@ -5,9 +5,9 @@
 
 ### Bug Fixes
 
-* clear errors for missing git / Xcode CLT and old Node, normalize piped stdin (1.0.5) ([b8279f1](https://github.com/nkcroft/unorm/commit/b8279f1498487ca7bc75ba8c88d6b57132dadda4))
-* explain missing Xcode Command Line Tools and normalize piped stdin ([5cdfa15](https://github.com/nkcroft/unorm/commit/5cdfa159bdf34d39aa0ccd6a920f067ac9810e34)), closes [#40](https://github.com/nkcroft/unorm/issues/40)
-* report unsupported Node.js versions with an upgrade hint ([2e27327](https://github.com/nkcroft/unorm/commit/2e273273d840e761092082cf58d3049bbe42b471)), closes [#40](https://github.com/nkcroft/unorm/issues/40)
+* clear errors for missing git / Xcode CLT and old Node, normalize piped stdin (1.0.5) ([6037978](https://github.com/nkcroft/unorm/commit/60379786c2a08f46c2be5a1c7c2db42a4832dc7f))
+* explain missing Xcode Command Line Tools and normalize piped stdin ([cbcb479](https://github.com/nkcroft/unorm/commit/cbcb479d890e78d43dfc6eb0d2c01fc85b61eebd)), closes [#40](https://github.com/nkcroft/unorm/issues/40)
+* report unsupported Node.js versions with an upgrade hint ([31bb21b](https://github.com/nkcroft/unorm/commit/31bb21b45fe00d0478b6ae311b4af480cdbe501e)), closes [#40](https://github.com/nkcroft/unorm/issues/40)
 
 ## [1.0.4](https://github.com/nkcroft/unorm/compare/v1.0.3...v1.0.4) (2026-11-05)
 
@@ -15,7 +15,7 @@
 ### Bug Fixes
 
 * accurate diagnostics and safe git user.name update in CLI ([f8d09af](https://github.com/nkcroft/unorm/commit/f8d09afa80b6334fa6f5c60aad4b58ff9b471195)), closes [#36](https://github.com/nkcroft/unorm/issues/36)
-* accurate diagnostics, safe git fix, stream boundary, Windows and types (1.0.4) ([0ad5c6e](https://github.com/nkcroft/unorm/commit/0ad5c6e516ea158b12fcc10b8704ab3d6957fe52))
+* accurate diagnostics, safe git fix, stream boundary, Windows and types (1.0.4) ([56742b6](https://github.com/nkcroft/unorm/commit/56742b6eb9a7a67dd880841ef70214e5de05f8f0))
 * keep base characters with following marks across stream chunks ([1a486a8](https://github.com/nkcroft/unorm/commit/1a486a80f54ff7f1b2079f9e5a131544b735f92b)), closes [#36](https://github.com/nkcroft/unorm/issues/36)
 * run CLI on Windows and ship type declarations ([5d9dc37](https://github.com/nkcroft/unorm/commit/5d9dc37dc1f06e03a3ef1c83cf8e18dbc0e2c7c8)), closes [#36](https://github.com/nkcroft/unorm/issues/36)
 
