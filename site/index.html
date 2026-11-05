@@ -3,388 +3,652 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>unorm — 맥에서 깨진 한글, 한 줄로 고치기</title>
-<meta name="description" content="macOS NFD로 분리된 한글 자모(ㅎㅗㅇㄱㅣㄹㄷㅗㅇ)를 NFC(홍길동)로 되돌리는 가볍고 빠른 Node.js 유니코드 정규화 CLI·라이브러리. git user.name 진단과 수정까지 한 줄로.">
-<meta property="og:title" content="unorm — 맥에서 깨진 한글, 한 줄로 고치기">
-<meta property="og:description" content="NFD → NFC 유니코드 정규화 CLI·라이브러리. npx @nkcroft/unorm@latest --fix-git-user">
+<title>unorm — 맥에서 쪼개진 한글(NFD)을 NFC로, 한 줄로 고치기</title>
+<meta name="description" content="macOS에서 자모로 쪼개진 한글(NFD)을 표준 완성형(NFC)으로 바꾸는 Node.js CLI·라이브러리입니다. 파일명·텍스트·스트림 변환, git user.name 진단과 수정까지 npx 한 줄로 끝냅니다.">
+<meta name="author" content="nkcroft">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f2ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://nkcroft.github.io/unorm/">
+
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="unorm">
+<meta property="og:locale" content="ko_KR">
 <meta property="og:url" content="https://nkcroft.github.io/unorm/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b7285'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'%3E한%3C/text%3E%3C/svg%3E">
+<meta property="og:title" content="unorm — 맥에서 쪼개진 한글, 한 줄로 고치기">
+<meta property="og:description" content="NFD → NFC 유니코드 정규화 CLI·라이브러리. npx @nkcroft/unorm@latest --fix-git-user">
+<meta property="og:image" content="https://nkcroft.github.io/unorm/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="자모로 쪼개진 ㅎㅗㅇㄱㅣㄹㄷㅗㅇ이 unorm으로 홍길동이 되는 모습">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="unorm — 맥에서 쪼개진 한글, 한 줄로 고치기">
+<meta name="twitter:description" content="NFD → NFC 유니코드 정규화 CLI·라이브러리. npx 한 줄로 git 이름까지 고칩니다.">
+<meta name="twitter:image" content="https://nkcroft.github.io/unorm/og.png">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://nkcroft.github.io/unorm/#website",
+      "url": "https://nkcroft.github.io/unorm/",
+      "name": "unorm",
+      "inLanguage": "ko-KR"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://nkcroft.github.io/unorm/#app",
+      "name": "unorm (@nkcroft/unorm)",
+      "description": "macOS에서 자모로 쪼개진 한글(NFD)을 표준 완성형(NFC)으로 바꾸는 Node.js 유니코드 정규화 CLI·라이브러리",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "url": "https://nkcroft.github.io/unorm/",
+      "downloadUrl": "https://www.npmjs.com/package/@nkcroft/unorm",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Organization", "name": "nkcroft", "url": "https://github.com/nkcroft" },
+      "sameAs": ["https://github.com/nkcroft/unorm", "https://www.npmjs.com/package/@nkcroft/unorm"]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://nkcroft.github.io/unorm/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "이미 쌓인 커밋의 작성자 이름도 바뀌나요?",
+          "acceptedAnswer": { "@type": "Answer", "text": "아니요. --fix-git-user는 전역 설정만 바꾸므로 이후 커밋부터 NFC 이름이 기록됩니다. 과거 커밋은 히스토리를 다시 쓰지 않는 한 그대로 남습니다. 두 이름을 같은 사람으로 묶으려면 .mailmap을 활용하세요." }
+        },
+        {
+          "@type": "Question",
+          "name": "새 맥에서 --test-git-user가 실패해요",
+          "acceptedAnswer": { "@type": "Answer", "text": "macOS의 기본 git은 Xcode Command Line Tools가 설치되어야 동작합니다. xcode-select --install 또는 brew install git으로 설치한 뒤 다시 실행하세요. 문자열·파일 변환은 git 없이도 됩니다." }
+        },
+        {
+          "@type": "Question",
+          "name": "unorm requires Node.js 20.12.0 or newer가 나와요",
+          "acceptedAnswer": { "@type": "Answer", "text": "오래된 Node.js를 쓰고 있다는 뜻입니다. brew upgrade node 또는 nvm install --lts로 Node.js 20.12 이상으로 올려 주세요." }
+        },
+        {
+          "@type": "Question",
+          "name": "npx @nkcroft/unorm 실행 시 엉뚱한 결과가 나와요",
+          "acceptedAnswer": { "@type": "Answer", "text": "PATH에 이미 다른 unorm 실행 파일이 있으면 그것이 먼저 실행될 수 있습니다. which unorm으로 확인하고, 충돌하는 파일의 이름을 바꿔 주세요." }
+        },
+        {
+          "@type": "Question",
+          "name": "unorm: command not found가 나와요",
+          "acceptedAnswer": { "@type": "Answer", "text": "최신 npm에서는 버전을 지정하지 않으면 패키지 대신 명령을 찾으려 할 수 있습니다. npx @nkcroft/unorm@latest처럼 @latest를 붙이거나 npm exec를 쓰세요." }
+        },
+        {
+          "@type": "Question",
+          "name": "NFC로 바꾸면 데이터가 손실되나요?",
+          "acceptedAnswer": { "@type": "Answer", "text": "NFC와 NFD는 정준 등가여서 글자의 의미와 모양은 같고 인코딩만 다릅니다. 반면 NFKC/NFKD는 호환 문자를 바꾸므로 필요한 경우에만 사용하세요." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
 <style>
 :root {
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --surface-2: #eef1f4;
-  --text: #15191e;
-  --muted: #5b6672;
-  --border: #dde2e8;
-  --accent: #0b7285;
-  --accent-ink: #ffffff;
-  --accent-soft: #d6eef2;
-  --bad: #c92a2a;
-  --bad-soft: #fde8e8;
-  --good: #2b8a3e;
-  --good-soft: #e3f4e6;
-  --code-bg: #10161d;
-  --code-text: #e6edf3;
-  --code-muted: #8b98a5;
-  --radius: 14px;
+  --paper: #f4f2ec;
+  --paper-2: #e9e6dc;
+  --card: #fbfaf6;
+  --ink: #2a2925;
+  --ink-2: #4b4a45;
+  --hair: rgb(20 20 19 / 0.12);
+  --nfd: #b8360a;
+  --nfd-soft: #fadccd;
+  --nfc: #2336d9;
+  --nfc-soft: #dfe3ff;
+  --acid: #dce8a4;
+  --acid-ink: #2a2925;
+  --lab: #2d2c28;
+  --lab-2: #3a3934;
+  --lab-text: #ece9e0;
+  --lab-muted: #b3b1a6;
+  --lab-nfd: #ff8a5c;
+  --lab-nfc: #a8b3ff;
+  --line: #2a2925;
+  --shadow: 4px 4px 0 rgb(42 41 37 / 0.85);
+  --cta-bg: var(--acid);
+  --cta-fg: #2a2925;
+  --cta-btn-bg: #2a2925;
+  --cta-btn-fg: #eef4d2;
+  --r: 4px;
+  --sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "D2Coding", monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0d1117;
-    --surface: #151b23;
-    --surface-2: #1c2430;
-    --text: #e6edf3;
-    --muted: #93a1af;
-    --border: #2a3441;
-    --accent: #3bc9db;
-    --accent-ink: #062a30;
-    --accent-soft: #10343b;
-    --bad: #ff8787;
-    --bad-soft: #3a1d20;
-    --good: #69db7c;
-    --good-soft: #17301d;
-    --code-bg: #0a0e13;
+  :root {
+    --paper: #1a1a18;
+    --paper-2: #24241f;
+    --card: #20201c;
+    --ink: #e2e0d7;
+    --ink-2: #a9a79d;
+    --hair: rgb(239 237 230 / 0.1);
+    --nfd: #ff8a5c;
+    --nfd-soft: #3a1c10;
+    --nfc: #a8b3ff;
+    --nfc-soft: #1b2050;
+    --lab: #252520;
+    --lab-2: #31312b;
+    --acid: #c3d37f;
+    --acid-ink: #23231f;
+    --line: rgb(226 224 215 / 0.38);
+    --shadow: 4px 4px 0 rgb(195 211 127 / 0.45);
+    --cta-bg: #2a2d22;
+    --cta-fg: #e2e0d7;
+    --cta-btn-bg: var(--acid);
+    --cta-btn-fg: #23231f;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #0d1117;
-  --surface: #151b23;
-  --surface-2: #1c2430;
-  --text: #e6edf3;
-  --muted: #93a1af;
-  --border: #2a3441;
-  --accent: #3bc9db;
-  --accent-ink: #062a30;
-  --accent-soft: #10343b;
-  --bad: #ff8787;
-  --bad-soft: #3a1d20;
-  --good: #69db7c;
-  --good-soft: #17301d;
-  --code-bg: #0a0e13;
-}
+
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--sans);
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
 }
-a { color: var(--accent); }
+a { color: inherit; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--nfc); }
 code, pre, kbd { font-family: var(--mono); }
-.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+:not(pre) > code { font-size: 0.88em; background: var(--paper-2); padding: 1px 6px; border-radius: 3px; }
+:focus-visible { outline: 3px solid var(--nfc); outline-offset: 3px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+@media (max-width: 480px) { .wrap { padding: 0 16px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-/* Nav */
-nav.top {
-  position: sticky; top: 0; z-index: 10;
-  background: color-mix(in srgb, var(--bg) 85%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
+.skip {
+  position: absolute; left: 12px; top: -60px; z-index: 100;
+  background: var(--acid); color: var(--acid-ink); font-weight: 700;
+  padding: 10px 14px; border: 2px solid var(--acid-ink); text-decoration: none;
 }
-nav.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
-.brand { font-weight: 800; font-size: 18px; text-decoration: none; color: var(--text); letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
-.brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 14px; }
-nav.top .links { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
-nav.top .links a { color: var(--muted); text-decoration: none; }
-nav.top .links a:hover { color: var(--text); }
-@media (max-width: 640px) { nav.top .links a.hide-sm { display: none; } }
+.skip:focus { top: 12px; }
 
-/* Hero */
-.hero { padding: 72px 0 40px; }
-.eyebrow { display: inline-block; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
-h1 { font-size: clamp(32px, 6vw, 56px); line-height: 1.15; letter-spacing: -0.035em; margin: 18px 0 16px; }
-h1 .broken { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: color-mix(in srgb, var(--bad) 50%, transparent); }
-h1 .fixed { color: var(--good); }
-.lede { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 680px; margin: 0 0 28px; }
+/* ---------- Top bar ---------- */
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--line);
+}
+.site-header .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.03em; text-decoration: none; }
+.brand-mark {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: var(--acid); color: var(--acid-ink); border: 1.5px solid var(--line);
+  font-size: 15px; font-weight: 900; transform: rotate(-6deg);
+}
+.site-header nav { margin-left: auto; }
+.site-header ul { list-style: none; display: flex; gap: 4px; margin: 0; padding: 0; font-size: 15px; }
+.site-header li a { display: block; padding: 6px 10px; text-decoration: none; border-radius: 999px; }
+.site-header li a:hover { background: var(--ink); color: var(--paper); }
+@media (max-width: 680px) { .site-header .hide-sm { display: none; } }
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  border-bottom: 1.5px solid var(--line);
+  background-image:
+    linear-gradient(var(--hair) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+.hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 72px 0 64px; }
+@media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; padding: 48px 0; } }
+.eyebrow {
+  display: inline-flex; gap: 8px; align-items: center; margin: 0 0 22px;
+  font: 600 13px/1 var(--mono); letter-spacing: 0.02em; text-transform: uppercase;
+  border: 1.5px solid var(--line); padding: 7px 12px; border-radius: 999px; background: var(--card);
+}
+.eyebrow::before { content: "" / ""; width: 8px; height: 8px; border-radius: 50%; background: var(--nfd); box-shadow: 14px 0 0 var(--nfc); margin-right: 14px; }
+h1 {
+  font-size: clamp(40px, 6.4vw, 78px); line-height: 1.04; font-weight: 900; letter-spacing: -0.05em;
+  margin: 0 0 24px;
+}
+h1 .hl { background: linear-gradient(transparent 58%, var(--acid) 58% 92%, transparent 92%); padding: 0 2px; }
+@media (prefers-color-scheme: dark) { h1 .hl { color: var(--acid); background: none; } }
+.lede { font-size: clamp(17px, 2vw, 20px); color: var(--ink-2); max-width: 34em; margin: 0 0 30px; }
+.lede strong { color: var(--ink); }
+
 .cmd {
-  display: flex; align-items: center; gap: 12px;
-  background: var(--code-bg); color: var(--code-text);
-  border-radius: var(--radius); padding: 14px 14px 14px 18px;
-  font-family: var(--mono); font-size: 15px; max-width: 620px;
-  overflow-x: auto;
+  display: flex; align-items: center; gap: 12px; max-width: 600px;
+  background: var(--lab); color: var(--lab-text); border: 1.5px solid var(--line);
+  box-shadow: var(--shadow); padding: 12px 12px 12px 18px; font: 15px var(--mono);
 }
-.cmd .prompt { color: var(--code-muted); user-select: none; }
-.cmd code { white-space: nowrap; flex: 1; }
-@media (max-width: 560px) { .cmd { font-size: 13.5px; } .cmd code { white-space: normal; word-break: break-all; } }
+.cmd::before { content: "$" / ""; color: var(--lab-muted); }
+.cmd code { flex: 1; min-width: 0; background: none; padding: 0; font-size: inherit; overflow-wrap: anywhere; }
 .copy {
-  flex: none; border: 1px solid #2f3b48; background: #1b2531; color: var(--code-text);
-  font: 600 13px var(--sans); padding: 7px 12px; border-radius: 9px; cursor: pointer;
+  flex: none; cursor: pointer; font: 700 13px var(--sans);
+  background: var(--acid); color: var(--acid-ink); border: 1.5px solid var(--acid);
+  padding: 7px 14px; border-radius: 999px;
 }
-.copy:hover { background: #243140; }
-.copy.done { color: #69db7c; border-color: #2b8a3e; }
-.hero-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; font-size: 14px; color: var(--muted); }
-.hero-meta span::before { content: "✓ "; color: var(--good); font-weight: 700; }
+.copy:hover { filter: brightness(0.94); }
+.copy:focus-visible { outline-color: var(--acid); }
+.copy.done { background: transparent; color: var(--acid); }
+.facts { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; padding: 0; font-size: 14px; }
+.facts li { border: 1.5px solid var(--line); border-radius: 999px; padding: 4px 12px; background: var(--card); }
 
-/* Sections */
-section { padding: 56px 0; }
-section + section { border-top: 1px solid var(--border); }
-h2 { font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -0.025em; line-height: 1.25; margin: 0 0 10px; }
-.section-lede { color: var(--muted); margin: 0 0 28px; max-width: 680px; }
-
-/* Problem compare */
-.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 720px) { .compare { grid-template-columns: 1fr; } }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
-.card h3 { margin: 0 0 6px; font-size: 17px; }
-.card p { margin: 0; color: var(--muted); font-size: 15px; }
-.tag { display: inline-block; font: 700 12px var(--mono); padding: 2px 8px; border-radius: 6px; margin-bottom: 10px; }
-.tag.bad { background: var(--bad-soft); color: var(--bad); }
-.tag.good { background: var(--good-soft); color: var(--good); }
-.big-name { font-size: 34px; font-weight: 700; letter-spacing: 0.04em; margin: 6px 0 10px; word-break: break-all; }
-.big-name.bad { color: var(--bad); }
-.big-name.good { color: var(--good); }
-.cps { font: 13px var(--mono); color: var(--muted); word-break: break-all; }
-
-/* Demo */
-.demo { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; align-items: start; }
-@media (max-width: 860px) { .demo { grid-template-columns: 1fr; } }
-label.field { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
-textarea {
-  width: 100%; min-height: 120px; resize: vertical;
-  font: 18px var(--sans); color: var(--text);
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+/* Specimen (decorative) */
+.specimen {
+  position: relative; background: var(--card); border: 1.5px solid var(--line); box-shadow: var(--shadow);
+  padding: 22px; font-family: var(--mono);
 }
-textarea:focus, button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
-.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.specimen-head { display: flex; justify-content: space-between; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); border-bottom: 1.5px solid var(--line); padding-bottom: 10px; margin-bottom: 18px; }
+.jamo-row { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
+.jamo-row span {
+  display: grid; place-items: center; aspect-ratio: 3 / 4;
+  border: 1.5px dashed var(--nfd); color: var(--nfd); background: var(--nfd-soft);
+  font: 800 clamp(18px, 2.6vw, 28px) var(--sans);
+  animation: drop 0.6s cubic-bezier(.2,.9,.3,1.3) both; animation-delay: calc(var(--i) * 70ms);
+}
+.cp-row { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; margin-top: 6px; font-size: 9.5px; color: var(--ink-2); text-align: center; letter-spacing: -0.02em; }
+.arrow { display: flex; align-items: center; gap: 10px; margin: 18px 0; font-size: 13px; }
+.arrow::before, .arrow::after { content: "" / ""; height: 1.5px; background: var(--ink); flex: 1; }
+.arrow span { background: var(--acid); color: var(--acid-ink); border: 1.5px solid var(--line); padding: 3px 10px; font-weight: 700; }
+.syl-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.syl-row span {
+  display: grid; place-items: center; aspect-ratio: 1;
+  border: 1.5px solid var(--line); background: var(--nfc-soft); color: var(--nfc);
+  font: 900 clamp(48px, 7vw, 92px)/1 var(--sans);
+  animation: compose 0.7s cubic-bezier(.2,.9,.3,1.2) both; animation-delay: calc(0.9s + var(--i) * 140ms);
+}
+.syl-cp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; font-size: 11px; text-align: center; color: var(--ink-2); }
+.sticker {
+  position: absolute; right: -14px; top: -18px; transform: rotate(8deg);
+  background: var(--acid); color: var(--acid-ink); border: 1.5px solid var(--line);
+  font: 800 13px/1.2 var(--sans); padding: 8px 12px; text-align: center;
+}
+@media (max-width: 480px) { .sticker { right: 6px; } .specimen { padding: 16px; } }
+@keyframes drop { from { opacity: 0; transform: translateY(-18px) rotate(-8deg); } to { opacity: 1; transform: none; } }
+@keyframes compose { from { opacity: 0; transform: scale(0.6); letter-spacing: 0.5em; } to { opacity: 1; transform: none; } }
+
+/* Ticker (decorative) */
+.ticker { overflow: hidden; border-bottom: 1.5px solid var(--line); background: var(--lab); color: var(--lab-text); font: 600 14px/1 var(--mono); }
+.ticker div { display: flex; width: max-content; animation: slide 40s linear infinite; }
+.ticker span { padding: 12px 0; white-space: pre; }
+@keyframes slide { to { transform: translateX(-50%); } }
+
+/* ---------- Chapters ---------- */
+article { counter-reset: chapter; }
+.chapter { border-bottom: 1.5px solid var(--line); padding: 88px 0; }
+@media (max-width: 760px) { .chapter { padding: 56px 0; } }
+.chapter > .wrap { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); gap: 56px; }
+@media (max-width: 960px) { .chapter > .wrap { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+.chapter-head { align-self: start; position: sticky; top: 92px; }
+@media (max-width: 960px) { .chapter-head { position: static; } }
+.chapter.wide > .wrap { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+.chapter.wide .chapter-head { position: static; max-width: 40em; }
+h2 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1.15; font-weight: 850; letter-spacing: -0.04em; margin: 0 0 14px; }
+.chapter h2::before {
+  counter-increment: chapter; content: counter(chapter, decimal-leading-zero) / "";
+  display: block; width: max-content; margin-bottom: 18px;
+  font: 700 13px/1 var(--mono); padding: 6px 9px; background: var(--ink); color: var(--paper);
+}
+.chapter-head p { color: var(--ink-2); margin: 0; }
+h3 { font-size: 20px; line-height: 1.35; letter-spacing: -0.025em; margin: 0 0 8px; font-weight: 800; }
+
+/* Problem */
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 640px) { .versus { grid-template-columns: 1fr; } }
+.form-card { background: var(--card); border: 1.5px solid var(--line); padding: 24px; box-shadow: var(--shadow); }
+.form-card .glyphs { font-size: clamp(36px, 5vw, 52px); font-weight: 900; letter-spacing: 0.02em; line-height: 1.15; margin: 4px 0 12px; overflow-wrap: anywhere; }
+.form-card.nfd .glyphs { color: var(--nfd); }
+.form-card.nfc .glyphs { color: var(--nfc); }
+.form-card .cps { font: 12.5px/1.6 var(--mono); color: var(--ink-2); margin: 0 0 14px; overflow-wrap: anywhere; }
+.form-card p:last-child { margin: 0; color: var(--ink-2); font-size: 15.5px; }
+.label { display: inline-block; font: 700 12px/1 var(--mono); padding: 5px 8px; margin: 0 0 10px; border: 1.5px solid currentColor; }
+.nfd .label { color: var(--nfd); }
+.nfc .label { color: var(--nfc); }
+.why { margin-top: 28px; padding: 0; list-style: none; display: grid; gap: 0; border-top: 1.5px solid var(--line); }
+.why li { padding: 14px 0 14px 40px; border-bottom: 1.5px solid var(--hair); position: relative; }
+.why li::before { content: "✕" / ""; position: absolute; left: 6px; top: 14px; color: var(--nfd); font-weight: 900; }
+
+/* Lab (interactive demo) */
+.lab { background: var(--lab); color: var(--lab-text); border-bottom: 1.5px solid var(--line); padding: 88px 0; }
+@media (max-width: 760px) { .lab { padding: 56px 0; } }
+.lab h2 { color: var(--lab-text); }
+.lab h2::before { content: "LAB" / ""; display: block; width: max-content; margin-bottom: 18px; font: 700 13px/1 var(--mono); padding: 6px 9px; background: var(--acid); color: var(--acid-ink); }
+.lab .intro { color: var(--lab-muted); max-width: 40em; margin: 0 0 32px; }
+.lab-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+.lab label.field { display: block; font: 700 13px var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--lab-muted); margin-bottom: 8px; }
+.lab textarea {
+  width: 100%; min-height: 132px; resize: vertical;
+  font: 22px/1.5 var(--sans); color: var(--lab-text); background: var(--lab-2);
+  border: 1.5px solid var(--lab-muted); padding: 14px 16px; border-radius: 0;
+}
+.lab :focus-visible, .lab textarea:focus { outline: 3px solid var(--acid); outline-offset: 2px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .btn {
-  border: 1px solid var(--border); background: var(--surface); color: var(--text);
-  font: 600 14px var(--sans); padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  display: inline-block; cursor: pointer; text-decoration: none;
+  font: 700 14px var(--sans); padding: 10px 16px; border-radius: 999px;
+  border: 1.5px solid var(--lab-muted); background: transparent; color: var(--lab-text);
 }
-.btn:hover { background: var(--surface-2); }
-.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn.primary:hover { filter: brightness(1.07); }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
-.stat .k { font-size: 12px; color: var(--muted); }
-.stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.form-badge { display: inline-flex; align-items: center; gap: 8px; font: 700 15px var(--mono); padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; }
-.form-badge.good { background: var(--good-soft); color: var(--good); }
-.form-badge.bad { background: var(--bad-soft); color: var(--bad); }
-.form-badge.neutral { background: var(--surface-2); color: var(--muted); }
-.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-.panel .k { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-.as-seen { font-size: 22px; letter-spacing: 0.03em; word-break: break-all; min-height: 1.6em; }
-.chips { display: flex; flex-wrap: wrap; gap: 5px; max-height: 180px; overflow-y: auto; }
-.chip { font: 12px var(--mono); padding: 3px 7px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
-.chip.d { background: var(--bad-soft); color: var(--bad); font-weight: 700; }
+.btn:hover { background: var(--lab-2); }
+.btn.primary { background: var(--acid); color: var(--acid-ink); border-color: var(--acid); }
+.btn.primary:hover { filter: brightness(0.94); }
 .drop {
-  margin-top: 16px; border: 2px dashed var(--border); border-radius: 12px; padding: 18px;
-  text-align: center; color: var(--muted); font-size: 14px; cursor: pointer;
+  display: block; margin-top: 18px; padding: 22px; text-align: center; cursor: pointer;
+  border: 1.5px dashed var(--lab-muted); color: var(--lab-muted); font-size: 15px;
 }
-.drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
-.file-list { list-style: none; margin: 10px 0 0; padding: 0; font-size: 14px; text-align: left; }
-.file-list li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
-.file-list li:last-child { border-bottom: 0; }
-.file-list .name { word-break: break-all; }
+.drop:hover, .drop.over { border-color: var(--acid); color: var(--lab-text); background: var(--lab-2); }
+.drop:focus-within { outline: 3px solid var(--acid); outline-offset: 2px; }
+.drop strong { color: var(--lab-text); }
+.file-list { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; }
+.file-list:empty { display: none; }
+.file-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--lab-2); }
+.file-list .name { overflow-wrap: anywhere; }
 .file-list .st { flex: none; font: 700 12px var(--mono); }
-.st.bad { color: var(--bad); }
-.st.good { color: var(--good); }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.st.bad { color: var(--lab-nfd); }
+.st.good { color: var(--lab-nfc); }
+.badge { display: inline-block; font: 700 15px var(--mono); padding: 9px 14px; margin: 0 0 14px; border: 1.5px solid currentColor; }
+.badge.good { color: var(--lab-nfc); }
+.badge.bad { color: var(--lab-nfd); }
+.badge.neutral { color: var(--lab-muted); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 0 0 14px; border: 1.5px solid var(--lab-muted); }
+.stats div { padding: 12px 14px; }
+.stats div + div { border-left: 1.5px solid var(--lab-muted); }
+.stats dt { font-size: 12.5px; color: var(--lab-muted); line-height: 1.35; }
+.stats dd { margin: 4px 0 0; font: 800 28px/1 var(--mono); font-variant-numeric: tabular-nums; }
+@media (max-width: 420px) { .stats dd { font-size: 22px; } .stats div { padding: 10px; } }
+.panel { border: 1.5px solid var(--lab-muted); padding: 14px 16px; }
+.panel + .panel { margin-top: 12px; }
+.panel h3 { font: 700 12.5px/1.4 var(--mono); color: var(--lab-muted); margin: 0 0 8px; letter-spacing: 0; }
+.as-seen { font-size: 24px; letter-spacing: 0.03em; overflow-wrap: anywhere; min-height: 1.6em; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; max-height: 180px; overflow-y: auto; }
+.chip { font: 12px var(--mono); padding: 3px 7px; background: var(--lab-2); color: var(--lab-muted); }
+.chip.d { background: var(--lab-nfd); color: var(--lab); font-weight: 700; }
 
-/* Steps / code */
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
-@media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
-.step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; min-width: 0; }
-.step::before { counter-increment: step; content: counter(step); width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 700; font-size: 14px; margin-bottom: 10px; }
-.step h3 { margin: 0 0 6px; font-size: 17px; }
-.step p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
-pre {
-  margin: 0; background: var(--code-bg); color: var(--code-text);
-  border-radius: 12px; padding: 14px 16px; font-size: 13.5px; line-height: 1.6;
-  overflow-x: auto;
+/* Usage steps */
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; display: grid; gap: 16px; }
+.steps li { position: relative; background: var(--card); border: 1.5px solid var(--line); padding: 22px 22px 22px 84px; min-width: 0; }
+.steps li::before {
+  counter-increment: step; content: counter(step) / "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 60px;
+  display: grid; place-items: center; border-right: 1.5px solid var(--line);
+  font: 900 30px var(--sans); background: var(--acid); color: var(--acid-ink);
 }
-pre .c { color: var(--code-muted); }
-pre .r { color: #ff8787; }
-pre .g { color: #69db7c; }
-.step pre { margin-top: auto; white-space: pre-wrap; word-break: break-all; }
-.terminal { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
-.terminal .bar { background: var(--surface-2); padding: 8px 12px; display: flex; gap: 6px; }
-.terminal .bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--border); }
-.terminal pre { border-radius: 0; }
+@media (max-width: 520px) {
+  .steps li { padding: 64px 18px 18px; }
+  .steps li::before { bottom: auto; width: 48px; height: 44px; border-bottom: 1.5px solid var(--line); font-size: 22px; }
+}
+.steps p { margin: 0 0 12px; color: var(--ink-2); font-size: 15.5px; }
+pre {
+  margin: 0; background: var(--lab); color: var(--lab-text);
+  padding: 14px 16px; font-size: 14px; line-height: 1.65; overflow-x: auto;
+  border: 1.5px solid var(--line);
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+pre .c { color: var(--lab-muted); }
+pre .r { color: var(--lab-nfd); }
+pre .g { color: var(--lab-nfc); }
+.steps pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.terminal { margin: 24px 0 0; border: 1.5px solid var(--line); box-shadow: var(--shadow); }
+.terminal figcaption {
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px; font: 600 12.5px var(--mono);
+  background: var(--paper-2); border-bottom: 1.5px solid var(--line);
+}
+.terminal figcaption::before { content: "● ● ●" / ""; letter-spacing: 2px; color: var(--ink-2); }
+.terminal pre { border: 0; }
 
-/* Features */
-.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-@media (max-width: 860px) { .features { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
-.feature .ico { font-size: 22px; margin-bottom: 6px; }
+/* Snippets */
+.snippets { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.snippet h3 { display: flex; align-items: baseline; gap: 10px; }
+.snippet h3 small { font: 600 12.5px var(--mono); color: var(--ink-2); }
+.snippet p { margin: 0 0 10px; color: var(--ink-2); font-size: 15.5px; }
 
-/* Usage tabs */
-.tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-.tab { border: 1px solid var(--border); background: var(--surface); color: var(--muted); font: 600 14px var(--sans); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
-.tab[aria-selected="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
-.tabpanel[hidden] { display: none; }
+/* Bento features */
+.bento { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.bento li {
+  position: relative; overflow: hidden; grid-column: span 2;
+  background: var(--card); border: 1.5px solid var(--line); padding: 24px 22px 26px; min-height: 200px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.bento li:hover { transform: translate(-3px, -3px); box-shadow: var(--shadow); }
+.bento li:nth-child(1), .bento li:nth-child(2) { grid-column: span 3; }
+.bento li:nth-child(1) { background: var(--acid); color: var(--acid-ink); }
+.bento li:nth-child(1) p { color: var(--acid-ink); }
+.bento li:nth-child(1) code { background: rgb(0 0 0 / 0.08); }
+.bento li::after {
+  content: attr(data-glyph) / ""; position: absolute; right: -6px; bottom: -34px;
+  font: 900 140px/1 var(--sans); color: var(--ink); opacity: 0.07; pointer-events: none;
+}
+.bento li:nth-child(1)::after { color: var(--acid-ink); opacity: 0.12; }
+.bento li:nth-child(6) { grid-column: 1 / -1; min-height: 0; background: var(--lab); color: var(--lab-text); }
+.bento li:nth-child(6) p { color: var(--lab-muted); max-width: 40em; }
+.bento li:nth-child(6) code { background: var(--lab-2); }
+.bento li:nth-child(6)::after { color: var(--acid); opacity: 0.25; bottom: -46px; }
+.bento p { margin: 0; color: var(--ink-2); font-size: 15.5px; position: relative; }
+@media (max-width: 960px) { .bento li, .bento li:nth-child(1), .bento li:nth-child(2), .bento li:nth-child(6) { grid-column: span 3; } }
+@media (max-width: 600px) { .bento li, .bento li:nth-child(1), .bento li:nth-child(2), .bento li:nth-child(6) { grid-column: 1 / -1; min-height: 0; } }
 
 /* FAQ */
-details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
-details + details { margin-top: 10px; }
-summary { cursor: pointer; font-weight: 600; }
-details p, details pre { margin: 10px 0 0; }
-details p { color: var(--muted); font-size: 15px; }
+.faq details { border-top: 1.5px solid var(--line); }
+.faq details:last-child { border-bottom: 1.5px solid var(--line); }
+.faq summary {
+  list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 16px; align-items: baseline;
+  padding: 20px 0; font-weight: 750; font-size: 18px; letter-spacing: -0.02em;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+" / ""; flex: none; font: 400 28px/1 var(--mono); transition: transform .2s ease; }
+.faq details[open] summary::after { transform: rotate(45deg); color: var(--nfd); }
+.faq summary:hover { color: var(--nfc); }
+.faq details > p, .faq details > pre { margin: 0 0 20px; }
+.faq details > p { color: var(--ink-2); }
 
-/* CTA / footer */
-.cta { text-align: center; }
-.cta .cmd { margin: 0 auto; text-align: left; }
-.cta-links { display: flex; justify-content: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
-.cta-links a { text-decoration: none; }
-footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
-footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
-footer a { color: var(--muted); }
+/* CTA */
+.cta { background: var(--cta-bg); color: var(--cta-fg); padding: 96px 0; text-align: center; border-bottom: 1.5px solid var(--line); }
+.cta h2 { font-size: clamp(32px, 5vw, 60px); margin-bottom: 12px; }
+.cta p { margin: 0 0 30px; font-size: 18px; }
+.cta .cmd { margin: 0 auto; text-align: left; border-color: var(--lab); }
+.cta .cta-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 44px 0 0; }
+.cta-links a { font-weight: 800; padding: 12px 20px; border: 1.5px solid currentColor; border-radius: 999px; text-decoration: none; color: var(--cta-fg); }
+.cta-links a:first-child { background: var(--cta-btn-bg); color: var(--cta-btn-fg); border-color: var(--cta-btn-bg); }
+.cta-links a:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--cta-fg); }
+.cta :focus-visible { outline-color: var(--cta-fg); }
+
+/* Footer */
+.site-footer { padding: 32px 0 48px; font-size: 14px; color: var(--ink-2); }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+.site-footer ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; }
+.site-footer p { margin: 0; }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
 
-<nav class="top" aria-label="주요 메뉴">
+<header class="site-header">
   <div class="wrap">
-    <a class="brand" href="#"><span class="brand-mark" aria-hidden="true">한</span>unorm</a>
-    <div class="links">
-      <a href="#demo">데모</a>
-      <a href="#usage" class="hide-sm">사용법</a>
-      <a href="#faq" class="hide-sm">FAQ</a>
-      <a href="https://github.com/nkcroft/unorm">GitHub</a>
-      <a href="https://www.npmjs.com/package/@nkcroft/unorm">npm</a>
-    </div>
+    <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">한</span>unorm</a>
+    <nav aria-label="주요 메뉴">
+      <ul>
+        <li class="hide-sm"><a href="#problem">문제</a></li>
+        <li><a href="#lab">데모</a></li>
+        <li class="hide-sm"><a href="#usage">사용법</a></li>
+        <li class="hide-sm"><a href="#faq">FAQ</a></li>
+        <li><a href="https://github.com/nkcroft/unorm">GitHub</a></li>
+      </ul>
+    </nav>
   </div>
-</nav>
+</header>
 
-<main>
+<main id="main">
+<article>
   <header class="hero">
-    <div class="wrap">
-      <span class="eyebrow">Unicode NFC · NFD 정규화 도구</span>
-      <h1>
-        <span class="broken" aria-label="자모가 분리된 이름">ㅎㅗㅇㄱㅣㄹㄷㅗㅇ</span><br>
-        한 줄이면 <span class="fixed">홍길동</span>으로.
-      </h1>
-      <p class="lede">
-        맥에서 만든 파일명, 맥에서 설정한 git 이름이 다른 환경에서 자모로 쪼개져 보인 적 있나요?
-        <strong>unorm</strong>은 macOS의 NFD(분해형) 한글을 표준 NFC(완성형)로 되돌리는 가벼운 Node.js CLI이자 라이브러리입니다.
-      </p>
-      <div class="cmd" role="group" aria-label="빠른 실행 명령">
-        <span class="prompt" aria-hidden="true">$</span>
-        <code id="cmd-hero">npx @nkcroft/unorm@latest --fix-git-user</code>
-        <button class="copy" data-copy="#cmd-hero" type="button">복사</button>
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Unicode NFD → NFC 정규화 도구</p>
+        <h1>맥에서 쪼개진 한글, <span class="hl">한 줄로</span> 고칩니다.</h1>
+        <p class="lede">
+          맥에서 만든 파일명, 맥에서 설정한 git 이름이 다른 환경에서 ㅎㅗㅇㄱㅣㄹㄷㅗㅇ처럼 자모로 쪼개져 보인 적 있나요?
+          <strong>unorm</strong>은 macOS의 NFD(분해형) 한글을 표준 NFC(완성형)로 되돌리는 가벼운 Node.js CLI이자 라이브러리입니다.
+        </p>
+        <div class="cmd">
+          <code id="cmd-hero">npx @nkcroft/unorm@latest --fix-git-user</code>
+          <button class="copy" data-copy="#cmd-hero" type="button" aria-describedby="cmd-hero">복사</button>
+        </div>
+        <ul class="facts" aria-label="특징 요약">
+          <li>설치 없이 npx로 실행</li>
+          <li>macOS · Linux · Windows</li>
+          <li>의존성 2개</li>
+          <li>MIT 라이선스</li>
+        </ul>
       </div>
-      <div class="hero-meta">
-        <span>설치 없이 npx로 바로 실행</span>
-        <span>macOS · Linux · Windows</span>
-        <span>의존성 2개</span>
-        <span>MIT 라이선스</span>
+
+      <div class="specimen" aria-hidden="true">
+        <span class="sticker">npx<br>한 줄</span>
+        <div class="specimen-head"><span>NFD · 9 code points · macOS</span></div>
+        <div class="jamo-row">
+          <span style="--i:0">ㅎ</span><span style="--i:1">ㅗ</span><span style="--i:2">ㅇ</span><span style="--i:3">ㄱ</span><span style="--i:4">ㅣ</span><span style="--i:5">ㄹ</span><span style="--i:6">ㄷ</span><span style="--i:7">ㅗ</span><span style="--i:8">ㅇ</span>
+        </div>
+        <div class="cp-row"><span>1112</span><span>1169</span><span>11BC</span><span>1100</span><span>1175</span><span>11AF</span><span>1103</span><span>1169</span><span>11BC</span></div>
+        <div class="arrow"><span>normalize('NFC')</span></div>
+        <div class="syl-row"><span style="--i:0">홍</span><span style="--i:1">길</span><span style="--i:2">동</span></div>
+        <div class="syl-cp"><span>U+D64D</span><span>U+AE38</span><span>U+B3D9</span></div>
       </div>
     </div>
   </header>
 
-  <section id="problem">
+  <div class="ticker" aria-hidden="true"><div><span>U+1112 ㅎ  ·  U+1169 ㅗ  ·  U+11BC ㅇ  ·  NFD → NFC  ·  U+1100 ㄱ  ·  U+1175 ㅣ  ·  U+11AF ㄹ  ·  NFC ✓  ·  U+1103 ㄷ  ·  U+1169 ㅗ  ·  U+11BC ㅇ  ·  홍길동  ·  </span><span>U+1112 ㅎ  ·  U+1169 ㅗ  ·  U+11BC ㅇ  ·  NFD → NFC  ·  U+1100 ㄱ  ·  U+1175 ㅣ  ·  U+11AF ㄹ  ·  NFC ✓  ·  U+1103 ㄷ  ·  U+1169 ㅗ  ·  U+11BC ㅇ  ·  홍길동  ·  </span></div></div>
+
+  <section class="chapter" id="problem" aria-labelledby="problem-title">
     <div class="wrap">
-      <h2>보기엔 같아도, 컴퓨터에겐 다른 글자입니다</h2>
-      <p class="section-lede">
-        macOS는 한글을 초성·중성·종성 자모로 분해한 <strong>NFD</strong>로 저장하는 경우가 많고, Windows·Linux·웹은 완성형 음절인 <strong>NFC</strong>를 씁니다.
-        그래서 같은 "홍길동"이 검색되지 않고, git 커밋 작성자가 둘로 갈리고, 압축을 풀면 파일명이 깨집니다.
-      </p>
-      <div class="compare">
-        <div class="card">
-          <span class="tag bad">NFD · 9 code points</span>
-          <div class="big-name bad" aria-label="자모가 분리되어 보이는 이름">ㅎㅗㅇㄱㅣㄹㄷㅗㅇ</div>
-          <div class="cps">U+1112 U+1169 U+11BC U+1100 U+1175 U+11AF U+1103 U+1169 U+11BC</div>
-          <p style="margin-top:10px">macOS에서 입력·저장된 형태. 일부 환경에서는 자모가 따로 보입니다.</p>
+      <div class="chapter-head">
+        <h2 id="problem-title">보기엔 같아도, 컴퓨터에겐 다른 글자입니다</h2>
+        <p>macOS는 한글을 초성·중성·종성 자모로 분해한 <strong>NFD</strong>로 저장하는 경우가 많고, Windows·Linux·웹은 완성형 음절인 <strong>NFC</strong>를 씁니다.</p>
+      </div>
+      <div>
+        <div class="versus">
+          <div class="form-card nfd">
+            <h3><span class="label">NFD · 분해형</span></h3>
+            <p class="glyphs">ㅎㅗㅇㄱㅣㄹㄷㅗㅇ</p>
+            <p class="cps">9 code points<br>U+1112 U+1169 U+11BC U+1100 U+1175 U+11AF U+1103 U+1169 U+11BC</p>
+            <p>macOS에서 입력·저장된 형태입니다. 자모를 합치지 못하는 환경에서는 글자가 따로따로 보입니다.</p>
+          </div>
+          <div class="form-card nfc">
+            <h3><span class="label">NFC · 완성형</span></h3>
+            <p class="glyphs">홍길동</p>
+            <p class="cps">3 code points<br>U+D64D U+AE38 U+B3D9</p>
+            <p>어디서나 같은 글자로 인식되는 표준 형태입니다. unorm이 이 형태로 바꿔 줍니다.</p>
+          </div>
         </div>
-        <div class="card">
-          <span class="tag good">NFC · 3 code points</span>
-          <div class="big-name good">홍길동</div>
-          <div class="cps">U+D64D U+AE38 U+B3D9</div>
-          <p style="margin-top:10px">어디서나 같은 글자로 인식되는 표준 형태. unorm이 이 형태로 바꿔 줍니다.</p>
-        </div>
+        <ul class="why" aria-label="NFD 때문에 생기는 문제">
+          <li>같은 "홍길동"으로 검색해도 찾지 못합니다.</li>
+          <li>git 커밋 작성자가 같은 사람인데 두 명으로 갈립니다.</li>
+          <li>압축을 풀거나 다른 OS로 옮기면 파일명이 자모로 깨집니다.</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <section id="demo">
+  <aside class="lab" id="lab" role="complementary" aria-labelledby="lab-title">
     <div class="wrap">
-      <h2>지금 바로 확인해 보세요</h2>
-      <p class="section-lede">입력한 문자열을 브라우저 안에서 검사합니다. 아무 데이터도 서버로 보내지 않습니다. 맥 Finder에서 복사한 파일명을 붙여 넣거나, 파일을 끌어다 놓아 보세요.</p>
-      <div class="demo">
+      <h2 id="lab-title">지금 바로 확인해 보세요</h2>
+      <p class="intro">입력한 문자열을 브라우저 안에서만 검사하며, 아무 데이터도 서버로 보내지 않습니다. 맥 Finder에서 복사한 파일명을 붙여 넣거나 파일을 끌어다 놓아 보세요.</p>
+      <div class="lab-grid">
         <div>
           <label class="field" for="demo-input">검사할 문자열</label>
-          <textarea id="demo-input" spellcheck="false" autocomplete="off"></textarea>
+          <textarea id="demo-input" spellcheck="false" autocomplete="off" aria-describedby="form-badge"></textarea>
           <div class="btn-row">
             <button class="btn primary" id="to-nfc" type="button">NFC로 변환</button>
             <button class="btn" id="to-nfd" type="button">NFD로 변환</button>
             <button class="btn" id="sample" type="button">맥 NFD 예시 넣기</button>
             <button class="btn" id="copy-out" type="button">결과 복사</button>
           </div>
-          <div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-hint">
-            <span id="drop-hint">파일을 여기에 끌어다 놓거나 눌러서 선택하면 <strong>파일명</strong>이 NFD인지 알려 드립니다.</span>
-            <input type="file" id="file-input" multiple class="sr-only" tabindex="-1">
-            <ul class="file-list" id="file-list" aria-live="polite"></ul>
-          </div>
+          <label class="drop" id="drop" for="file-input">
+            <input type="file" id="file-input" multiple class="sr-only">
+            파일을 여기에 끌어다 놓거나 눌러서 선택하면 <strong>파일명</strong>이 NFD인지 알려 드립니다.
+          </label>
+          <ul class="file-list" id="file-list" aria-live="polite" aria-label="파일명 검사 결과"></ul>
         </div>
-        <div aria-live="polite">
-          <div id="form-badge" class="form-badge neutral">—</div>
-          <div class="stats">
-            <div class="stat"><div class="k">눈에 보이는 글자</div><div class="v" id="s-glyphs">0</div></div>
-            <div class="stat"><div class="k">코드 포인트</div><div class="v" id="s-cps">0</div></div>
-            <div class="stat"><div class="k">분해된 자모·결합문자</div><div class="v" id="s-dec">0</div></div>
-          </div>
-          <div class="panel" style="margin-bottom:12px">
-            <div class="k">자모를 합치지 못하는 환경에서 보이는 모습</div>
+        <div>
+          <p id="form-badge" class="badge neutral" role="status">—</p>
+          <dl class="stats">
+            <div><dt>눈에 보이는 글자</dt><dd id="s-glyphs">0</dd></div>
+            <div><dt>코드 포인트</dt><dd id="s-cps">0</dd></div>
+            <div><dt>분해된 자모·결합문자</dt><dd id="s-dec">0</dd></div>
+          </dl>
+          <div class="panel">
+            <h3>자모를 합치지 못하는 환경에서 보이는 모습</h3>
             <div class="as-seen" id="as-seen"></div>
           </div>
           <div class="panel">
-            <div class="k">코드 포인트 (분해된 문자는 빨간색)</div>
+            <h3>코드 포인트 (분해된 문자는 강조)</h3>
             <div class="chips" id="chips"></div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </aside>
 
-  <section id="usage">
+  <section class="chapter" id="usage" aria-labelledby="usage-title">
     <div class="wrap">
-      <h2>git 작성자 이름, 3단계로 고치기</h2>
-      <p class="section-lede">맥에서 <code>git config --global user.name</code>을 한글로 설정했다면 NFD로 저장되어 있을 수 있습니다. 먼저 진단하고, 필요할 때만 고칩니다.</p>
-      <div class="steps">
-        <div class="step">
-          <h3>진단 (읽기 전용)</h3>
-          <p>현재 이름의 정규화 형식, 글자 수, 코드 포인트를 보여 줍니다. 아무것도 바꾸지 않습니다.</p>
-          <pre><code>npx @nkcroft/unorm@latest --test-git-user</code></pre>
-        </div>
-        <div class="step">
-          <h3>수정</h3>
-          <p>NFD가 감지되면 NFC로 바꿔 저장하고, 다시 읽어서 제대로 저장됐는지 확인합니다.</p>
-          <pre><code>npx @nkcroft/unorm@latest --fix-git-user</code></pre>
-        </div>
-        <div class="step">
-          <h3>확인</h3>
-          <p>이후 커밋부터 작성자 이름이 NFC로 기록됩니다. 다시 진단하면 ✓가 표시됩니다.</p>
-          <pre><code>git log -1 --format='%an'</code></pre>
-        </div>
+      <div class="chapter-head">
+        <h2 id="usage-title">git 작성자 이름, 3단계로 고치기</h2>
+        <p>맥에서 <code>git config --global user.name</code>을 한글로 설정했다면 NFD로 저장되어 있을 수 있습니다. 먼저 진단하고, 필요할 때만 고칩니다.</p>
       </div>
-      <div class="terminal" aria-label="실행 예시">
-        <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
-<pre><span class="c">$</span> npx @nkcroft/unorm@latest --fix-git-user
+      <div>
+        <ol class="steps">
+          <li>
+            <h3>진단 (읽기 전용)</h3>
+            <p>현재 이름의 정규화 형식, 글자 수, 코드 포인트를 보여 줍니다. 아무것도 바꾸지 않습니다.</p>
+            <pre><code>npx @nkcroft/unorm@latest --test-git-user</code></pre>
+          </li>
+          <li>
+            <h3>수정</h3>
+            <p>NFD가 감지되면 NFC로 바꿔 저장하고, 다시 읽어서 제대로 저장됐는지 확인합니다.</p>
+            <pre><code>npx @nkcroft/unorm@latest --fix-git-user</code></pre>
+          </li>
+          <li>
+            <h3>확인</h3>
+            <p>이후 커밋부터 작성자 이름이 NFC로 기록됩니다. 다시 진단하면 ✓가 표시됩니다.</p>
+            <pre><code>git log -1 --format='%an'</code></pre>
+          </li>
+        </ol>
+        <figure class="terminal">
+          <figcaption>실행 예시: --fix-git-user</figcaption>
+<pre tabindex="0"><code><span class="c">$</span> npx @nkcroft/unorm@latest --fix-git-user
 <span class="g">Successfully normalized git user.name to NFC!</span>
-  Before : <span class="r">홍길동</span>  <span class="r">NFD ⚠ (decomposed)</span>, 9 code points  <span class="c">\u1112\u1169\u11BC\u1100\u1175\u11AF\u1103\u1169\u11BC</span>
+  Before : <span class="r">홍길동</span>  <span class="r">NFD ⚠ (decomposed)</span>, 9 code points  <span class="c">\u1112\u1169\u11BC\u1100\u1175\u11AF\u1103\u1169\u11BC</span>
   After  : <span class="g">홍길동</span>  <span class="g">NFC ✓</span>, 3 code points  <span class="c">홍길동</span>
-  <span class="c">Glyphs are identical (3); only the encoding changed.</span></pre>
+  <span class="c">Glyphs are identical (3); only the encoding changed.</span></code></pre>
+        </figure>
       </div>
     </div>
   </section>
 
-  <section id="more">
+  <section class="chapter" id="more" aria-labelledby="more-title">
     <div class="wrap">
-      <h2>파일, 파이프, 코드까지</h2>
-      <p class="section-lede">git 이름만이 아닙니다. 텍스트 파일과 스트림, Node.js 코드 어디서든 같은 방식으로 정규화합니다.</p>
-      <div class="tabs" role="tablist" aria-label="사용 예시">
-        <button class="tab" role="tab" aria-selected="true" aria-controls="tp-cli" id="tab-cli" type="button">CLI</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="tp-lib" id="tab-lib" type="button">라이브러리</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="tp-stream" id="tab-stream" type="button">스트림</button>
+      <div class="chapter-head">
+        <h2 id="more-title">파일, 파이프, 코드까지</h2>
+        <p>git 이름만이 아닙니다. 텍스트 파일과 스트림, Node.js 코드 어디서든 같은 방식으로 정규화합니다.</p>
       </div>
-      <div class="tabpanel" role="tabpanel" id="tp-cli" aria-labelledby="tab-cli">
-<pre><span class="c"># 전역 설치 (선택)</span>
+      <div class="snippets">
+        <section class="snippet" aria-labelledby="sn-cli">
+          <h3 id="sn-cli">CLI <small>파이프 · 파일 · 문자열</small></h3>
+<pre tabindex="0"><code><span class="c"># 전역 설치 (선택)</span>
 npm install -g @nkcroft/unorm
 
 <span class="c"># 파이프로 변환 (기본값 NFC)</span>
@@ -395,101 +659,114 @@ unorm -i mac_nfd_text.txt -o win_nfc_text.txt -f NFC
 
 <span class="c"># 문자열 변환과 상세 분석</span>
 unorm "한글"
-unorm -t "$(git config --global user.name)"</pre>
-      </div>
-      <div class="tabpanel" role="tabpanel" id="tp-lib" aria-labelledby="tab-lib" hidden>
-<pre><span class="c">// npm install @nkcroft/unorm  (ESM · CommonJS · TypeScript 타입 포함)</span>
+unorm -t "$(git config --global user.name)"</code></pre>
+        </section>
+        <section class="snippet" aria-labelledby="sn-lib">
+          <h3 id="sn-lib">라이브러리 <small>ESM · CommonJS · TypeScript</small></h3>
+<pre tabindex="0"><code><span class="c">// npm install @nkcroft/unorm</span>
 import { normalizeString } from '@nkcroft/unorm'
 
 const nfd = '한글'.normalize('NFD')
 normalizeString(nfd)          <span class="c">// '한글' (NFC, 기본값)</span>
-normalizeString('한글', 'NFD') <span class="c">// 분해형</span></pre>
-      </div>
-      <div class="tabpanel" role="tabpanel" id="tp-stream" aria-labelledby="tab-stream" hidden>
-<pre>import { createReadStream, createWriteStream } from 'node:fs'
+normalizeString('한글', 'NFD') <span class="c">// 분해형</span></code></pre>
+        </section>
+        <section class="snippet" aria-labelledby="sn-stream">
+          <h3 id="sn-stream">스트림 <small>대용량 파일</small></h3>
+          <p>청크 경계에서 자모·결합문자가 잘려도 전체를 한 번에 변환한 것과 같은 결과를 냅니다.</p>
+<pre tabindex="0"><code>import { createReadStream, createWriteStream } from 'node:fs'
 import { NormalizeStream } from '@nkcroft/unorm'
 
-<span class="c">// 청크 경계에서 자모·결합문자가 잘려도 전체를 한 번에 변환한 것과 같은 결과</span>
 createReadStream('input-nfd.txt')
   .pipe(new NormalizeStream({ form: 'NFC' }))
-  .pipe(createWriteStream('output-nfc.txt'))</pre>
+  .pipe(createWriteStream('output-nfc.txt'))</code></pre>
+        </section>
       </div>
     </div>
   </section>
 
-  <section id="features">
+  <section class="chapter wide" id="features" aria-labelledby="features-title">
     <div class="wrap">
-      <h2>작고, 정확하고, 안전하게</h2>
-      <p class="section-lede">필요한 일만 하는 도구를 목표로 만들었습니다.</p>
-      <div class="features">
-        <div class="card feature"><div class="ico" aria-hidden="true">⚡</div><h3>설치 없이 실행</h3><p><code>npx</code> 한 줄로 바로 진단·수정. 런타임 의존성은 commander와 picocolors 두 개뿐입니다.</p></div>
-        <div class="card feature"><div class="ico" aria-hidden="true">🔍</div><h3>정확한 진단</h3><p>형식(NFC/NFD/NFKC/NFKD), 눈에 보이는 글자 수, 코드 포인트, 이스케이프를 나란히 보여 줍니다.</p></div>
-        <div class="card feature"><div class="ico" aria-hidden="true">🧩</div><h3>스트림 경계 안전</h3><p>대용량 파일을 청크로 나눠 처리해도 <code>가</code>+<code>ᆨ</code> 같은 조합이 끊기지 않습니다.</p></div>
-        <div class="card feature"><div class="ico" aria-hidden="true">🛡️</div><h3>안전한 git 수정</h3><p>셸을 거치지 않고 git을 호출하고, 저장 후 다시 읽어 검증합니다. 이미 NFC면 아무것도 바꾸지 않습니다.</p></div>
-        <div class="card feature"><div class="ico" aria-hidden="true">💻</div><h3>모든 플랫폼</h3><p>macOS·Linux·Windows에서 Node.js 20.12 이상이면 동작합니다.</p></div>
-        <div class="card feature"><div class="ico" aria-hidden="true">📦</div><h3>라이브러리로도</h3><p>ESM, CommonJS, TypeScript 타입을 함께 제공합니다. 문자열 함수와 Transform 스트림을 그대로 가져다 쓰세요.</p></div>
+      <div class="chapter-head">
+        <h2 id="features-title">작고, 정확하고, 안전하게</h2>
+        <p>필요한 일만 하는 도구를 목표로 만들었습니다.</p>
+      </div>
+      <ul class="bento">
+        <li data-glyph="ㅎ"><h3>설치 없이 실행</h3><p><code>npx</code> 한 줄로 바로 진단·수정합니다. 런타임 의존성은 commander와 picocolors 두 개뿐입니다.</p></li>
+        <li data-glyph="ㅗ"><h3>정확한 진단</h3><p>형식(NFC/NFD/NFKC/NFKD), 눈에 보이는 글자 수, 코드 포인트, 이스케이프를 나란히 보여 줍니다.</p></li>
+        <li data-glyph="ㅇ"><h3>스트림 경계 안전</h3><p>대용량 파일을 청크로 나눠 처리해도 <code>가</code>+<code>ᆨ</code> 같은 조합이 끊기지 않습니다.</p></li>
+        <li data-glyph="ㄱ"><h3>안전한 git 수정</h3><p>셸을 거치지 않고 git을 호출하고, 저장 후 다시 읽어 검증합니다. 이미 NFC면 아무것도 바꾸지 않습니다.</p></li>
+        <li data-glyph="ㅣ"><h3>모든 플랫폼</h3><p>macOS·Linux·Windows에서 Node.js 20.12 이상이면 동작합니다.</p></li>
+        <li data-glyph="ㄹ"><h3>라이브러리로도</h3><p>ESM, CommonJS, TypeScript 타입을 함께 제공합니다. 문자열 함수와 Transform 스트림을 그대로 가져다 쓰세요.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="chapter faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="chapter-head">
+        <h2 id="faq-title">자주 묻는 질문</h2>
+        <p>문제가 생기면 먼저 여기를 확인해 주세요. 해결되지 않으면 <a href="https://github.com/nkcroft/unorm/issues">GitHub 이슈</a>로 알려 주세요.</p>
+      </div>
+      <div>
+        <details>
+          <summary>이미 쌓인 커밋의 작성자 이름도 바뀌나요?</summary>
+          <p>아니요. <code>--fix-git-user</code>는 전역 설정만 바꾸므로 이후 커밋부터 NFC 이름이 기록됩니다. 과거 커밋은 히스토리를 다시 쓰지 않는 한 그대로 남습니다. GitHub 등에서 두 이름을 같은 사람으로 묶으려면 <code>.mailmap</code>을 활용하세요.</p>
+        </details>
+        <details>
+          <summary>새 맥에서 --test-git-user가 실패해요</summary>
+          <p>macOS의 기본 <code>git</code>은 Xcode Command Line Tools가 설치되어야 동작합니다. 둘 중 하나를 설치한 뒤 다시 실행하세요. 문자열·파일 변환은 git 없이도 됩니다.</p>
+<pre tabindex="0"><code>xcode-select --install   # 또는: brew install git</code></pre>
+        </details>
+        <details>
+          <summary>unorm requires Node.js 20.12.0 or newer가 나와요</summary>
+          <p>오래된 Homebrew·시스템 Node.js를 쓰고 있다는 뜻입니다. Node.js 20.12 이상으로 올려 주세요.</p>
+<pre tabindex="0"><code>brew upgrade node        # 또는: nvm install --lts</code></pre>
+        </details>
+        <details>
+          <summary>npx @nkcroft/unorm 실행 시 엉뚱한 결과가 나와요</summary>
+          <p>PATH에 이미 다른 <code>unorm</code> 실행 파일이 있으면 그것이 먼저 실행될 수 있습니다. 아래 명령으로 확인하고, 충돌하는 파일의 이름을 바꿔 주세요.</p>
+<pre tabindex="0"><code>which unorm
+npx @nkcroft/unorm@latest --version</code></pre>
+        </details>
+        <details>
+          <summary>unorm: command not found가 나와요</summary>
+          <p>최신 npm에서는 버전을 지정하지 않으면 패키지 대신 명령을 찾으려 할 수 있습니다. <code>@latest</code>를 붙이거나 <code>npm exec</code>를 쓰세요.</p>
+<pre tabindex="0"><code>npx @nkcroft/unorm@latest --version
+npm exec --yes --package @nkcroft/unorm@latest -- unorm --version</code></pre>
+        </details>
+        <details>
+          <summary>NFC로 바꾸면 데이터가 손실되나요?</summary>
+          <p>NFC와 NFD는 정준 등가(canonical equivalence)여서 글자의 의미와 모양은 같고 인코딩만 다릅니다. 반면 NFKC/NFKD는 호환 문자(예: <code>ﬁ</code> → <code>fi</code>)를 바꾸므로 필요한 경우에만 사용하세요.</p>
+        </details>
       </div>
     </div>
   </section>
 
-  <section id="faq">
+  <section class="cta" id="start" aria-labelledby="start-title">
     <div class="wrap">
-      <h2>자주 묻는 질문</h2>
-      <p class="section-lede">문제가 생기면 먼저 여기를 확인해 주세요.</p>
-      <details>
-        <summary>이미 쌓인 커밋의 작성자 이름도 바뀌나요?</summary>
-        <p>아니요. <code>--fix-git-user</code>는 전역 설정만 바꾸므로 이후 커밋부터 NFC 이름이 기록됩니다. 과거 커밋은 히스토리를 다시 쓰지 않는 한 그대로 남습니다. GitHub 등에서 두 이름을 같은 사람으로 묶으려면 <code>.mailmap</code>을 활용하세요.</p>
-      </details>
-      <details>
-        <summary>새 맥에서 <code>--test-git-user</code>가 실패해요</summary>
-        <p>macOS의 기본 <code>git</code>은 Xcode Command Line Tools가 설치되어야 동작합니다. 둘 중 하나를 설치한 뒤 다시 실행하세요. 문자열·파일 변환은 git 없이도 됩니다.</p>
-<pre>xcode-select --install   # 또는: brew install git</pre>
-      </details>
-      <details>
-        <summary><code>unorm requires Node.js 20.12.0 or newer</code>가 나와요</summary>
-        <p>오래된 Homebrew·시스템 Node.js를 쓰고 있다는 뜻입니다. Node.js 20.12 이상으로 올려 주세요.</p>
-<pre>brew upgrade node        # 또는: nvm install --lts</pre>
-      </details>
-      <details>
-        <summary><code>npx @nkcroft/unorm</code> 실행 시 엉뚱한 결과가 나와요</summary>
-        <p>PATH에 이미 다른 <code>unorm</code> 실행 파일이 있으면 그것이 먼저 실행될 수 있습니다. 아래 명령으로 확인하고, 충돌하는 파일의 이름을 바꿔 주세요.</p>
-<pre>which unorm
-npx @nkcroft/unorm@latest --version</pre>
-      </details>
-      <details>
-        <summary><code>unorm: command not found</code>가 나와요</summary>
-        <p>최신 npm에서는 버전을 지정하지 않으면 패키지 대신 명령을 찾으려 할 수 있습니다. <code>@latest</code>를 붙이거나 <code>npm exec</code>를 쓰세요.</p>
-<pre>npx @nkcroft/unorm@latest --version
-npm exec --yes --package @nkcroft/unorm@latest -- unorm --version</pre>
-      </details>
-      <details>
-        <summary>NFC로 바꾸면 데이터가 손실되나요?</summary>
-        <p>NFC와 NFD는 정준 등가(canonical equivalence)여서 글자의 의미와 모양은 같고 인코딩만 다릅니다. 반면 NFKC/NFKD는 호환 문자(예: <code>ﬁ</code> → <code>fi</code>)를 바꾸므로 필요한 경우에만 사용하세요.</p>
-      </details>
-    </div>
-  </section>
-
-  <section class="cta">
-    <div class="wrap">
-      <h2>지금 내 git 이름부터 확인해 보세요</h2>
-      <p class="section-lede" style="margin-left:auto;margin-right:auto">읽기 전용 진단이라 아무것도 바뀌지 않습니다.</p>
-      <div class="cmd" role="group" aria-label="진단 명령">
-        <span class="prompt" aria-hidden="true">$</span>
+      <h2 id="start-title">지금 내 git 이름부터 확인해 보세요</h2>
+      <p>읽기 전용 진단이라 아무것도 바뀌지 않습니다.</p>
+      <div class="cmd">
         <code id="cmd-cta">npx @nkcroft/unorm@latest --test-git-user</code>
-        <button class="copy" data-copy="#cmd-cta" type="button">복사</button>
+        <button class="copy" data-copy="#cmd-cta" type="button" aria-describedby="cmd-cta">복사</button>
       </div>
-      <div class="cta-links">
-        <a class="btn primary" href="https://github.com/nkcroft/unorm">GitHub에서 보기</a>
-        <a class="btn" href="https://www.npmjs.com/package/@nkcroft/unorm">npm 패키지</a>
-      </div>
+      <p class="cta-links">
+        <a href="https://github.com/nkcroft/unorm">GitHub에서 보기</a>
+        <a href="https://www.npmjs.com/package/@nkcroft/unorm">npm 패키지</a>
+      </p>
     </div>
   </section>
+</article>
 </main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap">
-    <span>© nkcroft · MIT License</span>
-    <span><a href="https://github.com/nkcroft/unorm/issues">이슈 제보</a> · <a href="https://github.com/nkcroft/unorm/blob/main/CHANGELOG.md">변경 기록</a></span>
+    <p>© nkcroft · MIT License</p>
+    <ul aria-label="관련 링크">
+      <li><a href="https://github.com/nkcroft/unorm/issues">이슈 제보</a></li>
+      <li><a href="https://github.com/nkcroft/unorm/blob/main/CHANGELOG.md">변경 기록</a></li>
+      <li><a href="https://www.npmjs.com/package/@nkcroft/unorm">npm</a></li>
+    </ul>
   </div>
 </footer>
 
@@ -538,20 +815,20 @@ npm exec --yes --package @nkcroft/unorm@latest -- unorm --version</pre>
   var seen = document.getElementById('as-seen')
 
   var FORM_TEXT = {
-    NFC: ['good', 'NFC ✓ 완성형 — 문제 없음'],
-    'NFC=NFD': ['neutral', 'NFC = NFD — 정규화와 무관한 문자'],
-    NFD: ['bad', 'NFD ⚠ 분해형 — NFC 변환 권장'],
-    MIXED: ['bad', 'MIXED ⚠ 일부만 분해됨 — NFC 변환 권장']
+    NFC: ['good', 'NFC ✓ 완성형: 문제 없음'],
+    'NFC=NFD': ['neutral', 'NFC = NFD: 정규화와 무관한 문자'],
+    NFD: ['bad', 'NFD ⚠ 분해형: NFC 변환 권장'],
+    MIXED: ['bad', 'MIXED ⚠ 일부만 분해됨: NFC 변환 권장']
   }
 
   function render () {
     var str = input.value
     var form = str ? detectForm(str) : null
     if (form) {
-      badge.className = 'form-badge ' + FORM_TEXT[form][0]
+      badge.className = 'badge ' + FORM_TEXT[form][0]
       badge.textContent = FORM_TEXT[form][1]
     } else {
-      badge.className = 'form-badge neutral'
+      badge.className = 'badge neutral'
       badge.textContent = '문자열을 입력하세요'
     }
     var chars = Array.from(str)
@@ -627,8 +904,6 @@ npm exec --yes --package @nkcroft/unorm@latest -- unorm --version</pre>
       list.appendChild(li)
     })
   }
-  drop.addEventListener('click', function (e) { if (e.target === drop || e.target.id === 'drop-hint') fileInput.click() })
-  drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click() } })
   fileInput.addEventListener('change', function () { showFiles(fileInput.files) })
   drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('over') })
   drop.addEventListener('dragleave', function () { drop.classList.remove('over') })
@@ -636,18 +911,6 @@ npm exec --yes --package @nkcroft/unorm@latest -- unorm --version</pre>
     e.preventDefault()
     drop.classList.remove('over')
     if (e.dataTransfer && e.dataTransfer.files) showFiles(e.dataTransfer.files)
-  })
-
-  // Tabs
-  var tabs = document.querySelectorAll('[role="tab"]')
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (t) {
-        var selected = t === tab
-        t.setAttribute('aria-selected', String(selected))
-        document.getElementById(t.getAttribute('aria-controls')).hidden = !selected
-      })
-    })
   })
 
   render()
