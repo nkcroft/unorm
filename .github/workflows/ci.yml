@@ -62,3 +62,4 @@ jobs:
         run: |
           node bin/unorm.js --version
           echo "한글" | node bin/unorm.js -f NFD | node bin/unorm.js -f NFC
+          echo "한글" | node bin/unorm.js -f NFD | node bin/unorm.js
