@@ -20,8 +20,11 @@ function run (args: string[], input?: string) {
   return { code: result.status, stdout: result.stdout, stderr: result.stderr }
 }
 
+// Write the config file directly: on macOS git precomposes command-line arguments to NFC
+// (core.precomposeUnicode), so `git config user.name <NFD>` would never store an NFD value.
 function setGitName (name: string) {
-  execFileSync('git', ['config', '--file', gitConfig, 'user.name', name])
+  const escaped = name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  writeFileSync(gitConfig, `[user]\n\tname = "${escaped}"\n`, 'utf8')
 }
 
 function getGitName (): string {
