@@ -1,0 +1,3 @@
+한글 — Hangul syllables in NFD (typical macOS-style decomposition)
+café — Latin with combining acute (NFD)
+Plain ASCII line for mixed content.
