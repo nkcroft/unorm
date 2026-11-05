@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/nkcroft/unorm/compare/v1.0.5...v1.0.6) (2026-11-05)
+
+
+### Documentation
+
+* point changelog links at rewritten commits ([38f89ac](https://github.com/nkcroft/unorm/commit/38f89acd8cd4efbddccd92665b5e0512d23894db))
+
 ## [1.0.5](https://github.com/nkcroft/unorm/compare/v1.0.4...v1.0.5) (2026-11-05)
 
 
